@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CockatooOS - Concept (Loading Fix)</title>
+    <title>CockatooOS - Concept (Strict State)</title>
     <style>
+        /* --- CSS is identical to the previous version --- */
         /* --- Global Styles & Variables --- */
         :root {
             --bg-color: #f0f8ff; /* AliceBlue - Light & Airy */
@@ -18,309 +19,80 @@
             --close-btn-color: #ff6b6b; /* Reddish */
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        html, body {
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            color: var(--text-color);
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        html, body { height: 100%; width: 100%; overflow: hidden; color: var(--text-color); }
 
         /* --- Desktop Area --- */
         #desktop {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-color);
-            background-image: linear-gradient(45deg, #e7f3ff 25%, transparent 25%),
-                              linear-gradient(-45deg, #e7f3ff 25%, transparent 25%),
-                              linear-gradient(45deg, transparent 75%, #e7f3ff 75%),
-                              linear-gradient(-45deg, transparent 75%, #e7f3ff 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-            transition: background-image 0.5s ease-in-out;
+            position: relative; width: 100%; height: 100%; background-color: var(--bg-color);
+            background-image: linear-gradient(45deg, #e7f3ff 25%, transparent 25%), linear-gradient(-45deg, #e7f3ff 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e7f3ff 75%), linear-gradient(-45deg, transparent 75%, #e7f3ff 75%);
+            background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; transition: background-image 0.5s ease-in-out;
         }
 
         /* --- The Branch (Dock/Taskbar) --- */
         #branch {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--branch-bg);
-            backdrop-filter: blur(5px);
-            border-radius: 15px;
-            padding: 8px 15px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            z-index: 1000;
+            position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: var(--branch-bg);
+            backdrop-filter: blur(5px); border-radius: 15px; padding: 8px 15px; display: flex; align-items: center; gap: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 1000;
         }
-
         .branch-item {
-            width: var(--icon-size);
-            height: var(--icon-size);
-            background-color: #eee;
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            position: relative;
+            width: var(--icon-size); height: var(--icon-size); background-color: #eee; border-radius: 10px; display: flex; justify-content: center;
+            align-items: center; font-size: 24px; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative;
         }
-
-        .branch-item:hover {
-            transform: scale(1.15);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-
+        .branch-item:hover { transform: scale(1.15); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
         .branch-item[data-tooltip]::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 110%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease;
-            pointer-events: none;
+            content: attr(data-tooltip); position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.7);
+            color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; opacity: 0; visibility: hidden;
+            transition: opacity 0.2s ease; pointer-events: none;
         }
-
-        .branch-item[data-tooltip]:hover::after {
-            opacity: 1;
-            visibility: visible;
-        }
-
-
-        #system-tray {
-            margin-left: 10px;
-            font-size: 14px;
-            font-weight: 500;
-            padding: 5px 10px;
-            background-color: rgba(0,0,0,0.05);
-            border-radius: 8px;
-        }
+        .branch-item[data-tooltip]:hover::after { opacity: 1; visibility: visible; }
+        #system-tray { margin-left: 10px; font-size: 14px; font-weight: 500; padding: 5px 10px; background-color: rgba(0,0,0,0.05); border-radius: 8px; }
 
         /* --- Web Nest (App Launcher) --- */
         #web-nest {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.95);
-            width: 80%;
-            max-width: 500px;
-            max-height: 60vh;
-            overflow-y: auto;
-            background-color: var(--nest-bg);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: none;
-            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-            gap: 20px;
-            z-index: 900;
-            opacity: 0;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            pointer-events: none;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); width: 80%; max-width: 500px; max-height: 60vh;
+            overflow-y: auto; background-color: var(--nest-bg); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 20px;
+            z-index: 900; opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: none;
         }
-
-        #web-nest.visible {
-           /* Props set in JS */
-        }
-
-        #web-nest .app-icon {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            cursor: pointer;
-            padding: 10px;
-            border-radius: 10px;
-            transition: background-color 0.2s ease;
-        }
-
-        #web-nest .app-icon:hover {
-            background-color: rgba(0,0,0,0.08);
-        }
-
-        #web-nest .app-icon .icon {
-            width: 50px;
-            height: 50px;
-            background-color: #ddd;
-            border-radius: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-
-        #web-nest .app-icon .name {
-            font-size: 12px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
-        }
+        #web-nest.visible { /* Props set in JS */ }
+        #web-nest .app-icon { display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; padding: 10px; border-radius: 10px; transition: background-color 0.2s ease; }
+        #web-nest .app-icon:hover { background-color: rgba(0,0,0,0.08); }
+        #web-nest .app-icon .icon { width: 50px; height: 50px; background-color: #ddd; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 28px; margin-bottom: 8px; }
+        #web-nest .app-icon .name { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
 
         /* --- App Windows --- */
-        .app-window {
-            position: absolute;
-            background-color: var(--window-bg);
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.25);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            min-width: 300px;
-            min-height: 200px;
-            resize: both;
-            z-index: 1;
-        }
-
-        .app-window.settings-window {
-             resize: none;
-             min-height: auto;
-        }
-
-        .app-window.active {
-             z-index: 10;
-        }
-
-        .window-header {
-            background-color: var(--window-header-bg);
-            padding: 5px 10px;
-            cursor: grab;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 30px;
-            border-bottom: 1px solid #ccc;
-            user-select: none;
-        }
-         .window-header:active {
-            cursor: grabbing;
-         }
-
-        .window-title {
-            font-weight: bold;
-            font-size: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding: 0 5px;
-        }
-
-        .window-icon {
-             display: inline-block;
-             margin-right: 5px;
-             flex-shrink: 0;
-        }
-
-        .window-controls {
-            flex-shrink: 0;
-        }
-
-        .window-controls button {
-            background: none;
-            border: none;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            padding: 0 5px;
-            line-height: 1;
-            color: var(--text-color);
-        }
-
-        .window-controls .close-btn {
-            color: var(--close-btn-color);
-        }
-        .window-controls .close-btn:hover {
-            opacity: 0.7;
-        }
+        .app-window { position: absolute; background-color: var(--window-bg); border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.25); overflow: hidden; display: flex; flex-direction: column; min-width: 300px; min-height: 200px; resize: both; z-index: 1; }
+        .app-window.settings-window { resize: none; min-height: auto; }
+        .app-window.active { z-index: 10; }
+        .window-header { background-color: var(--window-header-bg); padding: 5px 10px; cursor: grab; display: flex; justify-content: space-between; align-items: center; height: 30px; border-bottom: 1px solid #ccc; user-select: none; }
+        .window-header:active { cursor: grabbing; }
+        .window-title { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 5px; }
+        .window-icon { display: inline-block; margin-right: 5px; flex-shrink: 0; }
+        .window-controls { flex-shrink: 0; }
+        .window-controls button { background: none; border: none; font-size: 16px; font-weight: bold; cursor: pointer; padding: 0 5px; line-height: 1; color: var(--text-color); }
+        .window-controls .close-btn { color: var(--close-btn-color); }
+        .window-controls .close-btn:hover { opacity: 0.7; }
 
         /* --- Window Content Area --- */
-        .window-content {
-            flex-grow: 1;
-            border: none;
-            display: flex; /* Helps manage children */
-            position: relative; /* Needed for absolute positioning of info */
-            background-color: #f8f9fa;
-        }
-
-        /* Iframe takes full space */
-        .window-content iframe {
-            flex-grow: 1; /* Allow iframe to fill space */
-            width: 100%;
-            height: 100%;
-            border: none;
-            background-color: #fff;
-            /* Start hidden, shown on successful load */
-            display: none;
-        }
-
-        /* Fallback info message styling and positioning */
-        .iframe-info, .settings-content {
-             /* Use flex properties when it's the primary content */
-             flex-grow: 1; /* Allow info div to fill space */
-             display: flex; /* Use flex to center content vertically and horizontally */
-             flex-direction: column;
-             justify-content: center;
-             align-items: center;
-             padding: 20px;
-             text-align: center;
-             background-color: #f8f9fa; /* Match content area background */
-             color: #666;
-             font-size: 0.9em;
-             /* Start visible, hidden on success */
-             display: flex; /* Make sure it's initially visible */
-        }
-
-         .settings-content { /* Settings doesn't need flex centering */
-              position: static; /* Override if needed */
-              background-color: transparent;
-              align-items: flex-start;
-              justify-content: flex-start;
-              height: auto;
-              flex-grow: 0; /* Don't allow settings content to grow */
-         }
-         .settings-content p {
-             margin-bottom: 15px;
-         }
+        .window-content { flex-grow: 1; border: none; display: flex; position: relative; background-color: #f8f9fa; }
+        .window-content iframe { flex-grow: 1; width: 100%; height: 100%; border: none; background-color: #fff; display: none; /* Initially hidden */ }
+        .iframe-info, .settings-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; background-color: #f8f9fa; color: #666; font-size: 0.9em; display: flex; /* Initially visible */ }
+        .settings-content { position: static; background-color: transparent; align-items: flex-start; justify-content: flex-start; height: auto; flex-grow: 0; }
+        .settings-content p { margin-bottom: 15px; }
 
         /* --- Background Uploader Specific Styles --- */
         .background-uploader input[type="file"] { display: none; }
-        .background-uploader .upload-label {
-            display: inline-block; padding: 10px 15px; background-color: var(--accent-color);
-            color: var(--text-color); border: none; border-radius: 5px; cursor: pointer;
-            transition: background-color 0.2s ease, opacity 0.2s ease; font-weight: 500;
-        }
+        .background-uploader .upload-label { display: inline-block; padding: 10px 15px; background-color: var(--accent-color); color: var(--text-color); border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s ease, opacity 0.2s ease; font-weight: 500; }
         .background-uploader .upload-label:hover { opacity: 0.85; }
         .background-uploader .feedback { font-size: 0.85em; margin-top: 12px; min-height: 1.2em; }
-
     </style>
 </head>
 <body>
 
     <div id="desktop"></div>
 
-    <!-- The Branch (Dock) -->
+    <!-- Branch/Dock -->
     <div id="branch">
          <div class="branch-item" id="nest-toggle" data-tooltip="App Launcher">🚀</div>
          <div class="branch-item app-launcher" data-app-name="Notepad" data-app-url="https://anotepad.com/" data-app-icon="📝" data-tooltip="Notepad">📝</div>
@@ -331,7 +103,7 @@
         <div id="system-tray"><span id="clock"></span></div>
     </div>
 
-    <!-- Web Nest (App Launcher Panel) -->
+    <!-- Web Nest -->
     <div id="web-nest"></div>
 
     <script>
@@ -348,108 +120,38 @@
         let windowIdCounter = 0;
         let openWindows = {};
 
-        // --- App Definitions ---
-        const apps = [ /* Same apps as before */
-            { name: "Notepad", url: "https://anotepad.com/", icon: "📝" },
-            { name: "Wikipedia", url: "https://www.wikipedia.org/", icon: "📖"},
-            { name: "Draw", url:"https://excalidraw.com/", icon: "🎨" },
-            { name: "Game: 2048", url: "https://play2048.co/", icon: "🎮" },
-            { name: "Web Search (DDG)", url: "https://duckduckgo.com/", icon: "🌐" },
-            { name: "Calculator", url: "https://webcalculator.io/", icon: "🧮" },
-            { name: "Code Editor (VSCode)", url: "https://vscode.dev/", icon: "💻" },
-            { name: "Music Sequencer", url: "https://musiclab.chromeexperiments.com/Song-Maker/", icon: "🎵" },
-            { name: "Password Gen", url: "https://passwordsgenerator.net/", icon: "🔑" },
-            { name: "Appearance", type: 'internal', action: 'changeBackground', icon: "🖼️" },
+        // --- App Definitions (Unchanged) ---
+        const apps = [
+            { name: "Notepad", url: "https://anotepad.com/", icon: "📝" }, { name: "Wikipedia", url: "https://www.wikipedia.org/", icon: "📖"},
+            { name: "Draw", url:"https://excalidraw.com/", icon: "🎨" }, { name: "Game: 2048", url: "https://play2048.co/", icon: "🎮" },
+            { name: "Web Search (DDG)", url: "https://duckduckgo.com/", icon: "🌐" }, { name: "Calculator", url: "https://webcalculator.io/", icon: "🧮" },
+            { name: "Code Editor (VSCode)", url: "https://vscode.dev/", icon: "💻" }, { name: "Music Sequencer", url: "https://musiclab.chromeexperiments.com/Song-Maker/", icon: "🎵" },
+            { name: "Password Gen", url: "https://passwordsgenerator.net/", icon: "🔑" }, { name: "Appearance", type: 'internal', action: 'changeBackground', icon: "🖼️" },
         ];
 
-        // --- Clock ---
-        function updateClock() {
-            const now = new Date();
-            clockElement.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
+        // --- Clock (Unchanged) ---
+        function updateClock() { const now = new Date(); clockElement.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+        setInterval(updateClock, 1000); updateClock();
 
-        // --- Web Nest Toggle & Populate (Same as before) ---
-        function toggleNest() {
-            if (webNest.classList.contains('visible')) {
-                webNest.style.opacity = 0; webNest.style.transform = 'translate(-50%, -50%) scale(0.95)';
-                webNest.style.pointerEvents = 'none'; webNest.classList.remove('visible');
-                 setTimeout(() => { if (!webNest.classList.contains('visible')) webNest.style.display = 'none'; }, 300);
-            } else {
-                webNest.style.display = 'grid';
-                 requestAnimationFrame(() => { requestAnimationFrame(() => {
-                     webNest.classList.add('visible'); webNest.style.opacity = 1;
-                     webNest.style.transform = 'translate(-50%, -50%) scale(1)'; webNest.style.pointerEvents = 'auto';
-                 }); });
-            }
-        }
-        nestToggle.addEventListener('click', toggleNest);
-        document.addEventListener('click', (event) => { if (webNest.classList.contains('visible') && !webNest.contains(event.target) && !nestToggle.contains(event.target) ) { toggleNest(); } });
-        function populateNest() {
-            webNest.innerHTML = ''; apps.forEach(app => {
-                const el = document.createElement('div'); el.className = 'app-icon app-launcher';
-                el.dataset.appName = app.name; el.dataset.appIcon = app.icon;
-                if (app.type === 'internal') { el.dataset.appType = app.type; el.dataset.appAction = app.action; }
-                else { el.dataset.appUrl = app.url; }
-                el.innerHTML = `<div class="icon">${app.icon}</div><div class="name">${app.name}</div>`; webNest.appendChild(el);
-            });
-        }
-        populateNest();
+        // --- Web Nest Toggle & Populate (Unchanged) ---
+        function toggleNest() { if (webNest.classList.contains('visible')) { webNest.style.opacity = 0; webNest.style.transform = 'translate(-50%, -50%) scale(0.95)'; webNest.style.pointerEvents = 'none'; webNest.classList.remove('visible'); setTimeout(() => { if (!webNest.classList.contains('visible')) webNest.style.display = 'none'; }, 300); } else { webNest.style.display = 'grid'; requestAnimationFrame(() => { requestAnimationFrame(() => { webNest.classList.add('visible'); webNest.style.opacity = 1; webNest.style.transform = 'translate(-50%, -50%) scale(1)'; webNest.style.pointerEvents = 'auto'; }); }); } }
+        nestToggle.addEventListener('click', toggleNest); document.addEventListener('click', (event) => { if (webNest.classList.contains('visible') && !webNest.contains(event.target) && !nestToggle.contains(event.target) ) { toggleNest(); } });
+        function populateNest() { webNest.innerHTML = ''; apps.forEach(app => { const el = document.createElement('div'); el.className = 'app-icon app-launcher'; el.dataset.appName = app.name; el.dataset.appIcon = app.icon; if (app.type === 'internal') { el.dataset.appType = app.type; el.dataset.appAction = app.action; } else { el.dataset.appUrl = app.url; } el.innerHTML = `<div class="icon">${app.icon}</div><div class="name">${app.name}</div>`; webNest.appendChild(el); }); } populateNest();
 
-        // --- Window Management (Activate, Close, Drag - Same as before) ---
-        function activateWindow(windowElement) {
-             if (activeWindow && activeWindow !== windowElement) { activeWindow.classList.remove('active'); }
-             if (windowElement) { activeWindow = windowElement; activeWindow.classList.add('active'); highestZIndex++; activeWindow.style.zIndex = highestZIndex; }
-             else { activeWindow = null; }
-        }
-        function closeWindow(windowId) {
-             const el = document.getElementById(windowId); if (el) {
-                 const header = el.querySelector('.window-header');
-                 if (header && header._dragHandlers) { document.removeEventListener('mousemove', header._dragHandlers.move); document.removeEventListener('mouseup', header._dragHandlers.end); }
-                 el.remove(); delete openWindows[windowId]; if (activeWindow === el) { activateWindow(null); }
-             }
-        }
-        function addDragFunctionality(appWindow, header, windowId) {
-             let isDragging = false, offsetX, offsetY; header._dragHandlers = {
-                 start: (e) => { if (e.target.tagName === 'BUTTON') return; isDragging = true; activateWindow(appWindow);
-                     offsetX = e.clientX - appWindow.getBoundingClientRect().left; offsetY = e.clientY - appWindow.getBoundingClientRect().top;
-                     header.style.cursor = 'grabbing'; document.body.style.userSelect = 'none';
-                     document.addEventListener('mousemove', header._dragHandlers.move); document.addEventListener('mouseup', header._dragHandlers.end); },
-                 move: (e) => { if (!isDragging) return; e.preventDefault(); let newX = e.clientX - offsetX, newY = e.clientY - offsetY;
-                     const dRect = desktop.getBoundingClientRect(), wRect = appWindow.getBoundingClientRect();
-                     newX = Math.max(0, Math.min(newX, dRect.width - wRect.width)); newY = Math.max(0, Math.min(newY, dRect.height - wRect.height));
-                     appWindow.style.left = `${newX}px`; appWindow.style.top = `${newY}px`; },
-                 end: () => { if (isDragging) { isDragging = false; header.style.cursor = 'grab'; document.body.style.userSelect = '';
-                     document.removeEventListener('mousemove', header._dragHandlers.move); document.removeEventListener('mouseup', header._dragHandlers.end); } }
-             }; header.addEventListener('mousedown', header._dragHandlers.start);
-         }
+        // --- Window Management (Activate, Close, Drag - Unchanged) ---
+        function activateWindow(winEl) { if (activeWindow && activeWindow !== winEl) { activeWindow.classList.remove('active'); } if (winEl) { activeWindow = winEl; activeWindow.classList.add('active'); highestZIndex++; activeWindow.style.zIndex = highestZIndex; } else { activeWindow = null; } }
+        function closeWindow(winId) { const el = document.getElementById(winId); if (el) { const header = el.querySelector('.window-header'); if (header && header._dragHandlers) { document.removeEventListener('mousemove', header._dragHandlers.move); document.removeEventListener('mouseup', header._dragHandlers.end); } el.remove(); delete openWindows[winId]; if (activeWindow === el) { activateWindow(null); } } }
+        function addDragFunctionality(win, hdr, winId) { let isDragging = false, oX, oY; hdr._dragHandlers = { start: (e) => { if (e.target.tagName === 'BUTTON') return; isDragging = true; activateWindow(win); oX = e.clientX - win.getBoundingClientRect().left; oY = e.clientY - win.getBoundingClientRect().top; hdr.style.cursor = 'grabbing'; document.body.style.userSelect = 'none'; document.addEventListener('mousemove', hdr._dragHandlers.move); document.addEventListener('mouseup', hdr._dragHandlers.end); }, move: (e) => { if (!isDragging) return; e.preventDefault(); let nX = e.clientX - oX, nY = e.clientY - oY; const dR = desktop.getBoundingClientRect(), wR = win.getBoundingClientRect(); nX = Math.max(0, Math.min(nX, dR.width - wR.width)); nY = Math.max(0, Math.min(nY, dR.height - wR.height)); win.style.left = `${nX}px`; win.style.top = `${nY}px`; }, end: () => { if (isDragging) { isDragging = false; hdr.style.cursor = 'grab'; document.body.style.userSelect = ''; document.removeEventListener('mousemove', hdr._dragHandlers.move); document.removeEventListener('mouseup', hdr._dragHandlers.end); } } }; hdr.addEventListener('mousedown', hdr._dragHandlers.start); }
 
-
-        // --- Window Creation Base (Same as before) ---
-        function createWindowBase(config) {
-            const windowKey = config.type === 'internal' ? config.action : config.url;
-            const existingWindowId = Object.keys(openWindows).find(id => openWindows[id].key === windowKey);
-            if (existingWindowId) { activateWindow(document.getElementById(existingWindowId)); return; }
-            windowIdCounter++; const windowId = `window-${windowIdCounter}`; const appWindow = document.createElement('div');
-            appWindow.className = `app-window ${config.className || ''}`; appWindow.id = windowId;
-            appWindow.style.top = config.top || `${Math.random() * 20 + 5}%`; appWindow.style.left = config.left || `${Math.random() * 30 + 10}%`;
-            appWindow.style.width = config.width || '600px'; appWindow.style.height = config.height || '400px';
-            if (config.resizable === false) { appWindow.style.resize = 'none'; appWindow.classList.add('settings-window'); }
-            appWindow.innerHTML = `<div class="window-header"><span class="window-icon">${config.icon || '📄'}</span><span class="window-title">${config.name}</span><div class="window-controls"><button class="close-btn" title="Close">✖</button></div></div><div class="window-content ${config.contentClass || ''}">${config.contentHTML}</div>`;
-            desktop.appendChild(appWindow); openWindows[windowId] = { element: appWindow, key: windowKey }; activateWindow(appWindow);
-            const header = appWindow.querySelector('.window-header'); const closeButton = appWindow.querySelector('.close-btn');
-            closeButton.addEventListener('click', (e) => { e.stopPropagation(); closeWindow(windowId); });
-            appWindow.addEventListener('mousedown', (e) => { if (e.target === appWindow || header.contains(e.target)) { activateWindow(appWindow); } }, true);
-            addDragFunctionality(appWindow, header, windowId); return appWindow;
-        }
+        // --- Window Creation Base (Unchanged) ---
+        function createWindowBase(config) { const winKey = config.type === 'internal' ? config.action : config.url; const existingId = Object.keys(openWindows).find(id => openWindows[id].key === winKey); if (existingId) { activateWindow(document.getElementById(existingId)); return; } windowIdCounter++; const winId = `window-${windowIdCounter}`; const win = document.createElement('div'); win.className = `app-window ${config.className || ''}`; win.id = winId; win.style.top = config.top || `${Math.random() * 20 + 5}%`; win.style.left = config.left || `${Math.random() * 30 + 10}%`; win.style.width = config.width || '600px'; win.style.height = config.height || '400px'; if (config.resizable === false) { win.style.resize = 'none'; win.classList.add('settings-window'); } win.innerHTML = `<div class="window-header"><span class="window-icon">${config.icon || '📄'}</span><span class="window-title">${config.name}</span><div class="window-controls"><button class="close-btn" title="Close">✖</button></div></div><div class="window-content ${config.contentClass || ''}">${config.contentHTML}</div>`; desktop.appendChild(win); openWindows[winId] = { element: win, key: winKey }; activateWindow(win); const header = win.querySelector('.window-header'); const closeBtn = win.querySelector('.close-btn'); closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeWindow(winId); }); win.addEventListener('mousedown', (e) => { if (e.target === win || header.contains(e.target)) { activateWindow(win); } }, true); addDragFunctionality(win, header, winId); return win; }
 
         // --- Specific Window Creators ---
 
         function createIframeWindow(name, url, icon) {
-            // **REVISED HTML:** Simplified structure - iframe and info div as siblings
+            // HTML Structure: iframe and info div as siblings
             const contentHTML = `
-                <div class="iframe-info"> <!-- Initially visible via CSS -->
+                <div class="iframe-info"> <!-- Initially visible via CSS flex -->
                    <p>Loading ${name}...</p>
                 </div>
                 <iframe src="${url}"
@@ -462,65 +164,51 @@
 
             const appWindow = createWindowBase({ name, url, icon, contentHTML });
 
-            // **REVISED Event Handling:** Simple show/hide logic
+            // **REVISED Event Handling with Strict State:**
             if (appWindow) {
                  const iframe = appWindow.querySelector('iframe');
                  const fallbackMessageDiv = appWindow.querySelector('.iframe-info');
-                 let errorOccurred = false; // Flag to prevent load from overriding error
+                 let loadingState = 'loading'; // Possible states: 'loading', 'loaded', 'error'
 
                  iframe.addEventListener('load', () => {
-                    console.log(`Load event for: ${url}`);
-                    if (!errorOccurred) { // Only proceed if no error happened first
+                    console.log(`Load event for: ${url}. Current state: ${loadingState}`);
+                    // --- Transition to 'loaded' only if still 'loading' ---
+                    if (loadingState === 'loading') {
+                        loadingState = 'loaded'; // Set state to loaded
                         fallbackMessageDiv.style.display = 'none'; // Hide "Loading..."
                         iframe.style.display = 'block';        // Show iframe
-                        console.log(`Showing iframe for ${url}`);
+                        console.log(`State => 'loaded'. Showing iframe for ${url}`);
                     } else {
-                        console.log(`Load event ignored for ${url} due to prior error.`);
+                        // Ignore subsequent load events if already loaded or errored
+                        console.log(`Ignoring load event for ${url}. State is already '${loadingState}'.`);
                     }
                  });
 
                  iframe.addEventListener('error', (e) => {
-                    console.warn(`Error event for: ${url}`, e);
-                    errorOccurred = true; // Set error flag
-                    fallbackMessageDiv.innerHTML = `<p>Failed to load <strong>${name}</strong>.<br>(Connection issue or site error).</p>`;
-                    fallbackMessageDiv.style.display = 'flex'; // Ensure message is visible
-                    iframe.style.display = 'none';       // Ensure iframe is hidden
+                     console.warn(`Error event for: ${url}. Current state: ${loadingState}`, e);
+                    // --- Transition to 'error' only if still 'loading' ---
+                    if (loadingState === 'loading') {
+                        loadingState = 'error'; // Set state to error
+                        fallbackMessageDiv.innerHTML = `<p>Failed to load <strong>${name}</strong>.<br>(Connection issue or site error).</p>`;
+                        fallbackMessageDiv.style.display = 'flex'; // Ensure message is visible
+                        iframe.style.display = 'none';       // Ensure iframe remains hidden
+                        console.log(`State => 'error'. Showing error message for ${url}`);
+                    } else {
+                        // Ignore error events if already loaded or errored
+                        console.log(`Ignoring error event for ${url}. State is already '${loadingState}'.`);
+                    }
                  });
             }
         }
 
-        // Background Settings Window (Same as before)
-        function createBackgroundSettingsWindow() {
-            const config = { /* ... same config ... */
-                name: "Appearance Settings", icon: "🖼️", action: 'changeBackground', type: 'internal',
-                width: '380px', height: '220px', resizable: false, contentClass: 'background-uploader settings-content',
-                contentHTML: `<p>Select an image file to set as the desktop background:</p><label for="background-input" class="upload-label">Choose Image</label><input type="file" id="background-input" accept="image/*" /><p class="feedback" id="bg-feedback"></p>`
-            };
-            const appWindow = createWindowBase(config); if (appWindow) { /* ... same event listener logic ... */
-                const fileInput = appWindow.querySelector('#background-input'); const feedbackP = appWindow.querySelector('#bg-feedback'); const windowId = appWindow.id;
-                fileInput.addEventListener('change', (event) => { const file = event.target.files[0]; feedbackP.textContent = ''; feedbackP.style.color = '';
-                    if (file && file.type.startsWith('image/')) { feedbackP.textContent = 'Reading image...'; const reader = new FileReader();
-                        reader.onload = (e) => { desktop.style.backgroundImage = `url('${e.target.result}')`; desktop.style.backgroundSize = 'cover'; desktop.style.backgroundPosition = 'center center';
-                            feedbackP.textContent = 'Background updated!'; feedbackP.style.color = 'green'; setTimeout(() => closeWindow(windowId), 1200); };
-                        reader.onerror = () => { feedbackP.textContent = 'Error reading file.'; feedbackP.style.color = 'red'; }; reader.readAsDataURL(file);
-                    } else if (file) { feedbackP.textContent = 'Please select a valid image file.'; feedbackP.style.color = 'orange'; }
-                });
-             }
-        }
+        // Background Settings Window (Unchanged)
+        function createBackgroundSettingsWindow() { const config = { name: "Appearance Settings", icon: "🖼️", action: 'changeBackground', type: 'internal', width: '380px', height: '220px', resizable: false, contentClass: 'background-uploader settings-content', contentHTML: `<p>Select an image file to set as the desktop background:</p><label for="background-input" class="upload-label">Choose Image</label><input type="file" id="background-input" accept="image/*" /><p class="feedback" id="bg-feedback"></p>` }; const appWindow = createWindowBase(config); if (appWindow) { const fileInput = appWindow.querySelector('#background-input'); const feedbackP = appWindow.querySelector('#bg-feedback'); const windowId = appWindow.id; fileInput.addEventListener('change', (event) => { const file = event.target.files[0]; feedbackP.textContent = ''; feedbackP.style.color = ''; if (file && file.type.startsWith('image/')) { feedbackP.textContent = 'Reading image...'; const reader = new FileReader(); reader.onload = (e) => { desktop.style.backgroundImage = `url('${e.target.result}')`; desktop.style.backgroundSize = 'cover'; desktop.style.backgroundPosition = 'center center'; feedbackP.textContent = 'Background updated!'; feedbackP.style.color = 'green'; setTimeout(() => closeWindow(windowId), 1200); }; reader.onerror = () => { feedbackP.textContent = 'Error reading file.'; feedbackP.style.color = 'red'; }; reader.readAsDataURL(file); } else if (file) { feedbackP.textContent = 'Please select a valid image file.'; feedbackP.style.color = 'orange'; } }); } }
 
-        // --- Global App Launch Listener (Same as before) ---
-        document.addEventListener('click', (event) => {
-            const launcher = event.target.closest('.app-launcher'); if (launcher) {
-                const name = launcher.dataset.appName, url = launcher.dataset.appUrl, icon = launcher.dataset.appIcon || launcher.textContent.trim();
-                const appType = launcher.dataset.appType, appAction = launcher.dataset.appAction;
-                if (appType === 'internal') { if (appAction === 'changeBackground') { createBackgroundSettingsWindow(); } }
-                else if (name && url) { createIframeWindow(name, url, icon); }
-                if (webNest.classList.contains('visible')) { toggleNest(); }
-            }
-        });
+        // --- Global App Launch Listener (Unchanged) ---
+        document.addEventListener('click', (event) => { const launcher = event.target.closest('.app-launcher'); if (launcher) { const name = launcher.dataset.appName, url = launcher.dataset.appUrl, icon = launcher.dataset.appIcon || launcher.textContent.trim(); const appType = launcher.dataset.appType, appAction = launcher.dataset.appAction; if (appType === 'internal') { if (appAction === 'changeBackground') { createBackgroundSettingsWindow(); } } else if (name && url) { createIframeWindow(name, url, icon); } if (webNest.classList.contains('visible')) { toggleNest(); } } });
 
-        console.log("CockatooOS Concept Initialized (v. Loading Fix 2)!");
-
+        console.log("CockatooOS Concept Initialized (v. Strict State)!");
     </script>
+
 </body>
 </html>
