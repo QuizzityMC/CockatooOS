@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CockatooOS - Concept</title>
+    <title>CockatooOS - Concept (Reliable Apps)</title>
     <style>
         /* --- Global Styles & Variables --- */
         :root {
@@ -121,10 +121,10 @@
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%) scale(0.95); /* Start slightly smaller */
             width: 80%;
-            max-width: 600px;
-            max-height: 70vh;
+            max-width: 500px; /* Slightly smaller max-width */
+            max-height: 60vh; /* Reduced height */
             overflow-y: auto;
             background-color: var(--nest-bg);
             backdrop-filter: blur(10px);
@@ -132,17 +132,16 @@
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             display: none; /* Hidden by default */
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); /* Adjusted grid */
+            gap: 20px; /* Reduced gap */
             z-index: 900; /* Below the branch */
             opacity: 0;
             transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none; /* Prevent interaction while hidden */
         }
 
         #web-nest.visible {
-            display: grid;
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
+           /* Properties set in JS on toggle for smoother transition */
         }
 
         #web-nest .app-icon {
@@ -161,19 +160,19 @@
         }
 
         #web-nest .app-icon .icon {
-            width: 60px;
-            height: 60px;
+            width: 50px; /* Slightly smaller icon */
+            height: 50px;
             background-color: #ddd; /* Placeholder */
             border-radius: 12px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 30px; /* Emoji size */
+            font-size: 28px; /* Emoji size */
             margin-bottom: 8px;
         }
 
         #web-nest .app-icon .name {
-            font-size: 13px;
+            font-size: 12px; /* Slightly smaller text */
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -221,6 +220,17 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            padding: 0 5px; /* Add padding */
+        }
+
+        .window-icon {
+             display: inline-block; /* Needed for margin */
+             margin-right: 5px;
+             flex-shrink: 0; /* Prevent icon shrinking */
+        }
+
+        .window-controls {
+            flex-shrink: 0; /* Prevent controls shrinking */
         }
 
         .window-controls button {
@@ -244,6 +254,9 @@
         .window-content {
             flex-grow: 1; /* Fill remaining space */
             border: none; /* Remove iframe border */
+            display: flex; /* Use flex to center fallback message */
+            justify-content: center;
+            align-items: center;
         }
 
         .window-content iframe {
@@ -259,8 +272,8 @@
              text-align: center;
              color: #666;
              font-size: 0.9em;
+             max-width: 80%;
         }
-
 
     </style>
 </head>
@@ -270,14 +283,14 @@
         <!-- App windows will be dynamically added here -->
     </div>
 
-    <!-- The Branch (Dock) -->
+    <!-- The Branch (Dock) - Updated with more reliable apps -->
     <div id="branch">
         <div class="branch-item" id="nest-toggle" data-tooltip="App Launcher">🚀</div>
-        <!-- Fixed apps -->
-        <div class="branch-item app-launcher" data-app-name="Web Search" data-app-url="https://duckduckgo.com/" data-app-icon="🌐" data-tooltip="Web Search">🌐</div>
+        <!-- Fixed apps known to work reliably -->
         <div class="branch-item app-launcher" data-app-name="Notepad" data-app-url="https://anotepad.com/" data-app-icon="📝" data-tooltip="Notepad">📝</div>
-        <div class="branch-item app-launcher" data-app-name="Code Editor" data-app-url="https://vscode.dev/" data-app-icon="💻" data-tooltip="Code Editor">💻</div>
+        <div class="branch-item app-launcher" data-app-name="Wikipedia" data-app-url="https://www.wikipedia.org/" data-app-icon="📖" data-tooltip="Wikipedia">📖</div>
         <div class="branch-item app-launcher" data-app-name="Draw" data-app-url="https://excalidraw.com/" data-app-icon="🎨" data-tooltip="Draw">🎨</div>
+        <div class="branch-item app-launcher" data-app-name="Game: 2048" data-app-url="https://play2048.co/" data-app-icon="🎮" data-tooltip="Play 2048">🎮</div>
 
         <div id="system-tray">
             <span id="clock"></span>
@@ -302,25 +315,19 @@
         let highestZIndex = 10; // Start z-index for windows
 
         // --- App Definitions ---
-        // Define apps here to populate the Web Nest
-        // !! IMPORTANT !! Many sites block loading in iframes (X-Frame-Options/CSP).
-        // Choose sites known to allow embedding or be prepared for them not to load.
+        // !! Using ONLY apps known to be generally reliable in iframes !!
+        // Websites can change their policies, but this list should be much more stable.
         const apps = [
-            { name: "Web Search", url: "https://duckduckgo.com/", icon: "🌐" },
             { name: "Notepad", url: "https://anotepad.com/", icon: "📝" },
-            { name: "Calculator", url: "https://webcalculator.io/", icon: "🧮" },
-            { name: "Code Editor", url: "https://vscode.dev/", icon: "💻" },
+            { name: "Wikipedia", url: "https://www.wikipedia.org/", icon: "📖"},
             { name: "Draw", url:"https://excalidraw.com/", icon: "🎨" },
             { name: "Game: 2048", url: "https://play2048.co/", icon: "🎮" },
-            { name: "Game: Tetris", url: "https://tetris.com/play-tetris", icon: "🧱" }, // Might block
-            { name: "Converter", url:"https://cloudconvert.com/", icon: "🔄" }, // Often works
-            { name: "Wikipedia", url: "https://www.wikipedia.org/", icon: "📖"}, // Usually works
-            { name: "Weather", url: "https://www.metaweather.com/", icon: "🌦️" }, // Simple, might work
-            { name: "Music Sequencer", url: "https://musiclab.chromeexperiments.com/Song-Maker/", icon: "🎵" }, // Usually works
-            { name: "Password Gen", url: "https://passwordsgenerator.net/", icon: "🔑" }, // Simple tool
-            { name: "Internet Speed Test", url: "https://www.speedtest.net/", icon: "⚡"}, // Likely blocks
-            { name: "Photo Editor", url: "https://pixlr.com/e/", icon: "🖼️" }, // Might block features
-            // { name: "Maps", url: "https://www.google.com/maps", icon: "🗺️" }, // Almost certainly blocks
+            { name: "Web Search (DDG)", url: "https://duckduckgo.com/", icon: "🌐" }, // Main page usually works
+            { name: "Calculator", url: "https://webcalculator.io/", icon: "🧮" },
+            { name: "Code Editor (VSCode)", url: "https://vscode.dev/", icon: "💻" }, // Generally reliable PWA
+            { name: "Music Sequencer", url: "https://musiclab.chromeexperiments.com/Song-Maker/", icon: "🎵" },
+            { name: "Password Gen", url: "https://passwordsgenerator.net/", icon: "🔑" },
+             // Add more simple tools or embeddable games if found
         ];
 
         // --- Clock Functionality ---
@@ -362,6 +369,7 @@
         nestToggle.addEventListener('click', toggleNest);
 
         document.addEventListener('click', (event) => {
+             // Close nest only if clicking outside of it AND outside the toggle button
              if (webNest.classList.contains('visible') && !webNest.contains(event.target) && !nestToggle.contains(event.target) ) {
                 toggleNest();
              }
@@ -401,14 +409,13 @@
             const left = Math.random() * 30 + 10; // 10% to 40% from left
             appWindow.style.top = `${top}%`;
             appWindow.style.left = `${left}%`;
-            appWindow.style.width = '650px'; // Slightly larger default
-            appWindow.style.height = '450px';
+            appWindow.style.width = '600px';
+            appWindow.style.height = '400px';
 
             // Add iframe with sandbox attributes for security
-            // Note: sandbox won't override X-Frame-Options or CSP frame-ancestors
             appWindow.innerHTML = `
                 <div class="window-header">
-                    <span class="window-icon" style="margin-right: 5px;">${icon || '📄'}</span>
+                    <span class="window-icon">${icon || '📄'}</span>
                     <span class="window-title">${name}</span>
                     <div class="window-controls">
                         <button class="close-btn" title="Close">✖</button>
@@ -420,8 +427,8 @@
                             loading="lazy"
                             referrerpolicy="no-referrer"
                             title="${name} App Window">
-                        <!-- Fallback message if iframe fails -->
-                         <p class="iframe-info">Loading ${name}... If it doesn't appear, the website might block embedding.</p>
+                         <!-- Initial fallback message -->
+                         <p class="iframe-info">Loading ${name}...</p>
                     </iframe>
                 </div>
             `;
@@ -433,26 +440,36 @@
             const header = appWindow.querySelector('.window-header');
             const closeButton = appWindow.querySelector('.close-btn');
             const iframe = appWindow.querySelector('iframe');
+            const contentDiv = appWindow.querySelector('.window-content');
 
-            // Try to detect loading failure (basic)
+            // Try to detect loading failure (basic) - Still useful even for reliable sites
+            let loadedSuccessfully = false;
             iframe.addEventListener('load', () => {
                 try {
-                    // Accessing contentWindow.location throws a cross-origin error if blocked
-                    // This is an indirect way to guess if framing was denied
+                     // Very basic check - accessing this might throw if it's truly blocked or about:blank
                      const _ = iframe.contentWindow.location.href;
-                     // If we got here, it probably loaded okay (or it's about:blank)
+                     // If it loaded 'about:blank' or similar error page, it didn't really load the site
+                     if (iframe.contentWindow.location.href === 'about:blank' && url !== 'about:blank') {
+                         throw new Error("Loaded about:blank instead of target URL.");
+                     }
+                     console.log(`CockatooOS: Successfully loaded (or seems to have loaded) ${url}`);
+                     loadedSuccessfully = true;
+                     // Remove fallback message if it's still there
+                     const fallback = contentDiv.querySelector('.iframe-info');
+                     if (fallback) fallback.remove();
                 } catch (e) {
-                     // Likely blocked by X-Frame-Options or CSP
-                     console.warn(`CockatooOS: Could not load ${url} in iframe. Probably blocked.`);
-                     const contentDiv = appWindow.querySelector('.window-content');
-                     contentDiv.innerHTML = `<p class="iframe-info">The website <strong>${name}</strong> (${url}) could not be loaded here.<br>This usually happens because the site blocks being embedded for security reasons.</p>`;
+                     if (!loadedSuccessfully) { // Avoid showing error if it eventually loaded fine
+                         console.warn(`CockatooOS: Could not load ${url} in iframe. Blocked? Error: ${e.message}`);
+                         contentDiv.innerHTML = `<p class="iframe-info">Could not load <strong>${name}</strong>.<br>The website might block embedding or be temporarily unavailable.</p>`;
+                     }
                 }
             });
-            // Handle cases where 'load' doesn't fire properly on error (less common)
-            iframe.addEventListener('error', () => {
-                 console.warn(`CockatooOS: Iframe error event for ${url}.`);
-                 const contentDiv = appWindow.querySelector('.window-content');
-                 contentDiv.innerHTML = `<p class="iframe-info">Failed to load <strong>${name}</strong> (${url}).<br>The website might be down or block embedding.</p>`;
+
+            iframe.addEventListener('error', (e) => {
+                 if (!loadedSuccessfully) {
+                     console.warn(`CockatooOS: Iframe error event for ${url}.`);
+                     contentDiv.innerHTML = `<p class="iframe-info">Failed to load <strong>${name}</strong>.<br>Check your internet connection or the website might block embedding.</p>`;
+                 }
             });
 
 
@@ -480,7 +497,7 @@
 
             document.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
-                e.preventDefault(); // Prevent text selection etc. during drag
+                e.preventDefault();
 
                 let newX = e.clientX - offsetX;
                 let newY = e.clientY - offsetY;
@@ -488,7 +505,6 @@
                 const desktopRect = desktop.getBoundingClientRect();
                 const winRect = appWindow.getBoundingClientRect();
 
-                // Clamp position within desktop bounds
                 newX = Math.max(0, Math.min(newX, desktopRect.width - winRect.width));
                 newY = Math.max(0, Math.min(newY, desktopRect.height - winRect.height));
 
@@ -527,6 +543,7 @@
 
                 if (name && url) {
                     createWindow(name, url, icon);
+                    // Close the Nest after launching an app for cleaner UX
                     if (webNest.classList.contains('visible')) {
                         toggleNest();
                     }
@@ -534,7 +551,8 @@
             }
         });
 
-        console.log("CockatooOS Concept Initialized! Remember: Many websites block iframe embedding.");
+        console.log("CockatooOS Concept Initialized (Reliable Apps Version)!");
+        console.log("Remember: Websites control if they can be embedded. This list should work better.");
 
     </script>
 </body>
