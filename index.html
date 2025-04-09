@@ -3,114 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CockatooOS - Concept (Resizable Windows)</title>
+    <title>CockatooOS - Concept (Simulated Browser)</title>
     <style>
         /* --- Global Styles & Variables --- */
-        :root {
-            --bg-color: #f0f8ff; /* AliceBlue */
-            --branch-bg: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
-            --nest-bg: rgba(245, 245, 245, 0.95); /* Slightly opaque light grey */
-            --accent-color: #ffc107; /* Cockatoo Yellow */
-            --text-color: #333;
-            --icon-size: 48px;
-            --window-bg: #ffffff;
-            --window-header-bg: #e0e0e0;
-            --close-btn-color: #ff6b6b; /* Reddish */
-            --resize-handle-size: 8px; /* Size of the clickable resize area */
-            --resize-handle-color: rgba(0, 0, 0, 0.1); /* Subtle handle color for debugging */
+        :root { /* ... colors etc. same as before ... */
+             --bg-color: #f0f8ff; --branch-bg: rgba(255, 255, 255, 0.85); --nest-bg: rgba(245, 245, 245, 0.95);
+             --accent-color: #ffc107; --text-color: #333; --icon-size: 48px; --window-bg: #ffffff;
+             --window-header-bg: #e0e0e0; --close-btn-color: #ff6b6b; --resize-handle-size: 8px;
         }
-
+        /* --- Base styles, Desktop, Branch, Nest, Base Window styles are the same --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         html, body { height: 100%; width: 100%; overflow: hidden; color: var(--text-color); }
-
-        /* --- Desktop Area --- */
-        #desktop {
-            position: relative; width: 100%; height: 100%; background-color: var(--bg-color);
-            background-image: linear-gradient(45deg, #e7f3ff 25%, transparent 25%), linear-gradient(-45deg, #e7f3ff 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e7f3ff 75%), linear-gradient(-45deg, transparent 75%, #e7f3ff 75%);
-            background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; transition: background-image 0.5s ease-in-out;
-        }
-
-        /* --- The Branch (Dock/Taskbar) --- */
-        #branch {
-            position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: var(--branch-bg);
-            backdrop-filter: blur(5px); border-radius: 15px; padding: 8px 15px; display: flex; align-items: center; gap: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 1000;
-        }
-        .branch-item {
-            width: var(--icon-size); height: var(--icon-size); background-color: #eee; border-radius: 10px; display: flex; justify-content: center;
-            align-items: center; font-size: 24px; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative;
-        }
+        #desktop { position: relative; width: 100%; height: 100%; background-color: var(--bg-color); background-image: linear-gradient(45deg, #e7f3ff 25%, transparent 25%), linear-gradient(-45deg, #e7f3ff 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e7f3ff 75%), linear-gradient(-45deg, transparent 75%, #e7f3ff 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; transition: background-image 0.5s ease-in-out; }
+        #branch { position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: var(--branch-bg); backdrop-filter: blur(5px); border-radius: 15px; padding: 8px 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 1000; }
+        .branch-item { width: var(--icon-size); height: var(--icon-size); background-color: #eee; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative; }
         .branch-item:hover { transform: scale(1.15); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-        .branch-item[data-tooltip]::after {
-            content: attr(data-tooltip); position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.7);
-            color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; opacity: 0; visibility: hidden;
-            transition: opacity 0.2s ease; pointer-events: none;
-        }
+        .branch-item[data-tooltip]::after { content: attr(data-tooltip); position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; pointer-events: none; }
         .branch-item[data-tooltip]:hover::after { opacity: 1; visibility: visible; }
         #system-tray { margin-left: 10px; font-size: 14px; font-weight: 500; padding: 5px 10px; background-color: rgba(0,0,0,0.05); border-radius: 8px; }
-
-        /* --- Web Nest (App Launcher) --- */
-        #web-nest {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); width: 80%; max-width: 500px; max-height: 60vh;
-            overflow-y: auto; background-color: var(--nest-bg); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 20px;
-            z-index: 900; opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: none;
-        }
-        #web-nest.visible { /* Props set in JS */ }
-        #web-nest .app-icon { display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; padding: 10px; border-radius: 10px; transition: background-color 0.2s ease; }
-        #web-nest .app-icon:hover { background-color: rgba(0,0,0,0.08); }
-        #web-nest .app-icon .icon { width: 50px; height: 50px; background-color: #ddd; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 28px; margin-bottom: 8px; }
-        #web-nest .app-icon .name { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
-
-        /* --- App Windows --- */
-        .app-window {
-            position: absolute; background-color: var(--window-bg); border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.25); overflow: hidden; display: flex; flex-direction: column;
-            min-width: 200px; /* Minimum resize width */
-            min-height: 150px; /* Minimum resize height */
-            resize: none; /* REMOVE browser default resize */
-            z-index: 1;
-            border: 1px solid #bbb; /* Add a subtle border */
-        }
-        .app-window.settings-window { min-height: auto; border: none; /* Remove border for settings */ }
-        .app-window.active { z-index: 10; border-color: #666; /* Highlight active window border */ }
-        .window-header { background-color: var(--window-header-bg); padding: 5px 10px; cursor: grab; display: flex; justify-content: space-between; align-items: center; height: 30px; border-bottom: 1px solid #ccc; user-select: none; flex-shrink: 0; /* Prevent header from shrinking */ }
+        #web-nest { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95); width: 80%; max-width: 500px; max-height: 60vh; overflow-y: auto; background-color: var(--nest-bg); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 20px; z-index: 900; opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: none; }
+        #web-nest.visible {} #web-nest .app-icon { display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; padding: 10px; border-radius: 10px; transition: background-color 0.2s ease; } #web-nest .app-icon:hover { background-color: rgba(0,0,0,0.08); } #web-nest .app-icon .icon { width: 50px; height: 50px; background-color: #ddd; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 28px; margin-bottom: 8px; } #web-nest .app-icon .name { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .app-window { position: absolute; background-color: var(--window-bg); border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.25); overflow: hidden; display: flex; flex-direction: column; min-width: 200px; min-height: 150px; resize: none; z-index: 1; border: 1px solid #bbb; }
+        .app-window.settings-window { min-height: auto; border: none; } .app-window.active { z-index: 10; border-color: #666; }
+        .window-header { background-color: var(--window-header-bg); padding: 0 5px 0 10px; /* Adjusted padding */ cursor: grab; display: flex; justify-content: space-between; align-items: center; height: 30px; border-bottom: 1px solid #ccc; user-select: none; flex-shrink: 0; }
         .window-header:active { cursor: grabbing; }
-        .window-title { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 5px; }
-        .window-icon { display: inline-block; margin-right: 5px; flex-shrink: 0; }
-        .window-controls { flex-shrink: 0; }
+        .window-title { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-left: 5px; }
+        .window-icon { display: inline-block; flex-shrink: 0; } /* Icon only, title separate */
+        .window-controls { flex-shrink: 0; margin-left: auto; /* Push controls to right */}
         .window-controls button { background: none; border: none; font-size: 16px; font-weight: bold; cursor: pointer; padding: 0 5px; line-height: 1; color: var(--text-color); }
-        .window-controls .close-btn { color: var(--close-btn-color); }
-        .window-controls .close-btn:hover { opacity: 0.7; }
-
-        /* --- Window Content Area --- */
-        .window-content { flex-grow: 1; border: none; display: flex; background-color: #fff; overflow: hidden; /* Hide potential iframe overflow during resize */ }
-        .window-content iframe { flex-grow: 1; width: 100%; height: 100%; border: none; background-color: #fff; display: block !important; }
+        .window-controls .close-btn { color: var(--close-btn-color); } .window-controls .close-btn:hover { opacity: 0.7; }
+        .window-content { flex-grow: 1; border: none; display: flex; flex-direction: column; /* Allow toolbar + iframe */ background-color: #fff; overflow: hidden; }
+        .window-content iframe { flex-grow: 1; width: 100%; border: none; background-color: #fff; display: block !important; border-top: 1px solid #ccc; /* Separator line */ }
         .settings-content { padding: 20px; text-align: center; color: #666; font-size: 0.9em; max-width: 90%; width: 100%; align-self: flex-start; flex-grow: 0; }
         .settings-content p { margin-bottom: 15px; }
+        .background-uploader input[type="file"] { display: none; } .background-uploader .upload-label { display: inline-block; padding: 10px 15px; background-color: var(--accent-color); color: var(--text-color); border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s ease, opacity 0.2s ease; font-weight: 500; } .background-uploader .upload-label:hover { opacity: 0.85; } .background-uploader .feedback { font-size: 0.85em; margin-top: 12px; min-height: 1.2em; }
+        .resizer { position: absolute; width: var(--resize-handle-size); height: var(--resize-handle-size); z-index: 20; } .resizer.top-left { top: calc(var(--resize-handle-size)/-2); left: calc(var(--resize-handle-size)/-2); cursor: nwse-resize; } .resizer.top-right { top: calc(var(--resize-handle-size)/-2); right: calc(var(--resize-handle-size)/-2); cursor: nesw-resize; } .resizer.bottom-left { bottom: calc(var(--resize-handle-size)/-2); left: calc(var(--resize-handle-size)/-2); cursor: nesw-resize; } .resizer.bottom-right { bottom: calc(var(--resize-handle-size)/-2); right: calc(var(--resize-handle-size)/-2); cursor: nwse-resize; } .resizer.top { top: calc(var(--resize-handle-size)/-2); left: var(--resize-handle-size); right: var(--resize-handle-size); height: var(--resize-handle-size); width: auto; cursor: ns-resize; } .resizer.bottom { bottom: calc(var(--resize-handle-size)/-2); left: var(--resize-handle-size); right: var(--resize-handle-size); height: var(--resize-handle-size); width: auto; cursor: ns-resize; } .resizer.left { top: var(--resize-handle-size); bottom: var(--resize-handle-size); left: calc(var(--resize-handle-size)/-2); width: var(--resize-handle-size); height: auto; cursor: ew-resize; } .resizer.right { top: var(--resize-handle-size); bottom: var(--resize-handle-size); right: calc(var(--resize-handle-size)/-2); width: var(--resize-handle-size); height: auto; cursor: ew-resize; }
 
-        /* --- Background Uploader Styles (Unchanged) --- */
-        .background-uploader input[type="file"] { display: none; }
-        .background-uploader .upload-label { display: inline-block; padding: 10px 15px; background-color: var(--accent-color); color: var(--text-color); border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s ease, opacity 0.2s ease; font-weight: 500; }
-        .background-uploader .upload-label:hover { opacity: 0.85; }
-        .background-uploader .feedback { font-size: 0.85em; margin-top: 12px; min-height: 1.2em; }
-
-        /* --- Custom Resize Handles --- */
-        .resizer {
-            position: absolute;
-            width: var(--resize-handle-size);
-            height: var(--resize-handle-size);
-            /* background: var(--resize-handle-color); */ /* Uncomment to visualize handles */
-            z-index: 20; /* Above content, below active header maybe */
+        /* --- Simulated Browser Styles --- */
+        .browser-toolbar {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            background-color: #f1f1f1;
+            border-bottom: 1px solid #ccc;
+            flex-shrink: 0; /* Prevent shrinking */
         }
-        .resizer.top-left     { top: calc(var(--resize-handle-size)/-2); left: calc(var(--resize-handle-size)/-2); cursor: nwse-resize; }
-        .resizer.top-right    { top: calc(var(--resize-handle-size)/-2); right: calc(var(--resize-handle-size)/-2); cursor: nesw-resize; }
-        .resizer.bottom-left  { bottom: calc(var(--resize-handle-size)/-2); left: calc(var(--resize-handle-size)/-2); cursor: nesw-resize; }
-        .resizer.bottom-right { bottom: calc(var(--resize-handle-size)/-2); right: calc(var(--resize-handle-size)/-2); cursor: nwse-resize; }
-        .resizer.top          { top: calc(var(--resize-handle-size)/-2); left: var(--resize-handle-size); right: var(--resize-handle-size); height: var(--resize-handle-size); width: auto; cursor: ns-resize; }
-        .resizer.bottom       { bottom: calc(var(--resize-handle-size)/-2); left: var(--resize-handle-size); right: var(--resize-handle-size); height: var(--resize-handle-size); width: auto; cursor: ns-resize; }
-        .resizer.left         { top: var(--resize-handle-size); bottom: var(--resize-handle-size); left: calc(var(--resize-handle-size)/-2); width: var(--resize-handle-size); height: auto; cursor: ew-resize; }
-        .resizer.right        { top: var(--resize-handle-size); bottom: var(--resize-handle-size); right: calc(var(--resize-handle-size)/-2); width: var(--resize-handle-size); height: auto; cursor: ew-resize; }
+        .browser-toolbar input[type="text"] {
+            flex-grow: 1;
+            padding: 4px 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            margin: 0 5px;
+            font-size: 13px;
+        }
+        .browser-toolbar button {
+            padding: 4px 10px;
+            font-size: 13px;
+            margin-left: 5px;
+            cursor: pointer;
+        }
 
     </style>
 </head>
@@ -118,12 +69,12 @@
 
     <div id="desktop"></div>
 
-    <!-- Branch/Dock -->
+    <!-- Branch/Dock - Added Browser -->
     <div id="branch">
          <div class="branch-item" id="nest-toggle" data-tooltip="App Launcher">🚀</div>
+         <div class="branch-item app-launcher" data-app-name="Browser" data-app-type="internal" data-app-action="openBrowser" data-app-icon="🌐" data-tooltip="Web Browser">🌐</div>
          <div class="branch-item app-launcher" data-app-name="Notepad" data-app-url="https://anotepad.com/" data-app-icon="📝" data-tooltip="Notepad">📝</div>
          <div class="branch-item app-launcher" data-app-name="Wikipedia" data-app-url="https://www.wikipedia.org/" data-app-icon="📖" data-tooltip="Wikipedia">📖</div>
-         <!-- Add Maps Embed to Dock -->
          <div class="branch-item app-launcher" data-app-name="Maps (Embed)" data-app-url="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d49337614.25459279!2d80.03562270382191!3d-14.602721238669158!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2sau!4v1744169061945!5m2!1sen!2sau" data-app-icon="🗺️" data-tooltip="Maps">🗺️</div>
          <div class="branch-item app-launcher" data-app-name="Draw" data-app-url="https://excalidraw.com/" data-app-icon="🎨" data-tooltip="Draw">🎨</div>
          <div class="branch-item app-launcher" data-app-name="Game: 2048" data-app-url="https://play2048.co/" data-app-icon="🎮" data-tooltip="Play 2048">🎮</div>
@@ -150,234 +101,145 @@
 
         // --- App Definitions ---
         const apps = [
+             { name: "Browser", type: 'internal', action: 'openBrowser', icon: "🌐" }, // Added Browser App
              { name: "Notepad", url: "https://anotepad.com/", icon: "📝" },
              { name: "Wikipedia", url: "https://www.wikipedia.org/", icon: "📖"},
              { name: "Draw", url:"https://excalidraw.com/", icon: "🎨" },
              { name: "Game: 2048", url: "https://play2048.co/", icon: "🎮" },
-             { name: "Web Search (DDG)", url: "https://duckduckgo.com/", icon: "🌐" },
+             { name: "Web Search (DDG)", url: "https://duckduckgo.com/", icon: "🌐" }, // Maybe remove if Browser is added
              { name: "Calculator", url: "https://webcalculator.io/", icon: "🧮" },
              { name: "Code Editor (VSCode)", url: "https://vscode.dev/", icon: "💻" },
              { name: "Music Sequencer", url: "https://musiclab.chromeexperiments.com/Song-Maker/", icon: "🎵" },
              { name: "Password Gen", url: "https://passwordsgenerator.net/", icon: "🔑" },
-             // ** ADDED Maps Embed **
              { name: "Maps (Embed)", url: "https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d49337614.25459279!2d80.03562270382191!3d-14.602721238669158!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2sau!4v1744169061945!5m2!1sen!2sau", icon: "🗺️" },
              { name: "Appearance", type: 'internal', action: 'changeBackground', icon: "🖼️" },
         ];
 
-        // --- Clock (Unchanged) ---
+        // --- Clock, Nest Toggle, Populate Nest (Unchanged) ---
         function updateClock() { const now = new Date(); clockElement.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
         setInterval(updateClock, 1000); updateClock();
-
-        // --- Web Nest Toggle & Populate (Unchanged) ---
         function toggleNest() { if (webNest.classList.contains('visible')) { webNest.style.opacity = 0; webNest.style.transform = 'translate(-50%, -50%) scale(0.95)'; webNest.style.pointerEvents = 'none'; webNest.classList.remove('visible'); setTimeout(() => { if (!webNest.classList.contains('visible')) webNest.style.display = 'none'; }, 300); } else { webNest.style.display = 'grid'; requestAnimationFrame(() => { requestAnimationFrame(() => { webNest.classList.add('visible'); webNest.style.opacity = 1; webNest.style.transform = 'translate(-50%, -50%) scale(1)'; webNest.style.pointerEvents = 'auto'; }); }); } }
         nestToggle.addEventListener('click', toggleNest); document.addEventListener('click', (event) => { if (webNest.classList.contains('visible') && !webNest.contains(event.target) && !nestToggle.contains(event.target) ) { toggleNest(); } });
         function populateNest() { webNest.innerHTML = ''; apps.forEach(app => { const el = document.createElement('div'); el.className = 'app-icon app-launcher'; el.dataset.appName = app.name; el.dataset.appIcon = app.icon; if (app.type === 'internal') { el.dataset.appType = app.type; el.dataset.appAction = app.action; } else { el.dataset.appUrl = app.url; } el.innerHTML = `<div class="icon">${app.icon}</div><div class="name">${app.name}</div>`; webNest.appendChild(el); }); } populateNest();
 
-        // --- Window Management (Activate, Close - Mostly Unchanged) ---
+
+        // --- Window Management (Activate, Close, Drag, Resize - Unchanged) ---
         function activateWindow(winEl) { if (activeWindow && activeWindow !== winEl) { activeWindow.classList.remove('active'); } if (winEl) { activeWindow = winEl; activeWindow.classList.add('active'); highestZIndex++; activeWindow.style.zIndex = highestZIndex; } else { activeWindow = null; } }
-        function closeWindow(winId) {
-            const el = document.getElementById(winId);
-            if (el) {
-                // Remove drag listeners
-                const header = el.querySelector('.window-header');
-                if (header && header._dragHandlers) {
-                    document.removeEventListener('mousemove', header._dragHandlers.move);
-                    document.removeEventListener('mouseup', header._dragHandlers.end);
-                }
-                // ** Remove resize listeners **
-                const resizers = el.querySelectorAll('.resizer');
-                resizers.forEach(resizer => {
-                    if (resizer._resizeHandlers) {
-                        document.removeEventListener('mousemove', resizer._resizeHandlers.move);
-                        document.removeEventListener('mouseup', resizer._resizeHandlers.end);
-                    }
-                });
+        function closeWindow(winId) { const el = document.getElementById(winId); if (el) { const header = el.querySelector('.window-header'); if (header && header._dragHandlers) { document.removeEventListener('mousemove', header._dragHandlers.move); document.removeEventListener('mouseup', header._dragHandlers.end); } const resizers = el.querySelectorAll('.resizer'); resizers.forEach(resizer => { if (resizer._resizeHandlers) { document.removeEventListener('mousemove', resizer._resizeHandlers.move); document.removeEventListener('mouseup', resizer._resizeHandlers.end); } }); el.remove(); delete openWindows[winId]; if (activeWindow === el) { activateWindow(null); } } }
+        function addDragFunctionality(win, hdr, winId) { let isDragging = false, oX, oY; hdr._dragHandlers = { start: (e) => { if (e.target.tagName === 'BUTTON' || e.target.classList.contains('resizer')) return; isDragging = true; activateWindow(win); oX = e.clientX - win.getBoundingClientRect().left; oY = e.clientY - win.getBoundingClientRect().top; hdr.style.cursor = 'grabbing'; document.body.style.userSelect = 'none'; document.addEventListener('mousemove', hdr._dragHandlers.move); document.addEventListener('mouseup', hdr._dragHandlers.end); }, move: (e) => { if (!isDragging) return; e.preventDefault(); let nX = e.clientX - oX, nY = e.clientY - oY; const dR = desktop.getBoundingClientRect(), wR = win.getBoundingClientRect(); nX = Math.max(0, Math.min(nX, dR.width - wR.width)); nY = Math.max(0, Math.min(nY, dR.height - wR.height)); win.style.left = `${nX}px`; win.style.top = `${nY}px`; }, end: () => { if (isDragging) { isDragging = false; hdr.style.cursor = 'grab'; document.body.style.userSelect = ''; document.removeEventListener('mousemove', hdr._dragHandlers.move); document.removeEventListener('mouseup', hdr._dragHandlers.end); } } }; hdr.addEventListener('mousedown', hdr._dragHandlers.start); }
+        function addResizeFunctionality(win) { const resizers = win.querySelectorAll('.resizer'); const minW = parseInt(getComputedStyle(win).minWidth); const minH = parseInt(getComputedStyle(win).minHeight); let oW, oH, oX, oY, oMX, oMY, cType; resizers.forEach(resizer => { resizer._resizeHandlers = { start: (e) => { cType = resizer.classList[1]; e.preventDefault(); oW = win.offsetWidth; oH = win.offsetHeight; oX = win.offsetLeft; oY = win.offsetTop; oMX = e.clientX; oMY = e.clientY; activateWindow(win); document.addEventListener('mousemove', resizer._resizeHandlers.move); document.addEventListener('mouseup', resizer._resizeHandlers.end); document.body.style.userSelect = 'none'; document.body.style.cursor = getComputedStyle(resizer).cursor; }, move: (e) => { const dx = e.clientX - oMX; const dy = e.clientY - oMY; let nW = oW, nH = oH, nX = oX, nY = oY; if (cType.includes('right')) { nW = oW + dx; } if (cType.includes('bottom')) { nH = oH + dy; } if (cType.includes('left')) { nW = oW - dx; nX = oX + dx; } if (cType.includes('top')) { nH = oH - dy; nY = oY + dy; } if (nW < minW) { if (cType.includes('left')) { nX -= (minW - nW); } nW = minW; } if (nH < minH) { if (cType.includes('top')) { nY -= (minH - nH); } nH = minH; } if (nW !== win.offsetWidth || nX !== win.offsetLeft) { win.style.width = `${nW}px`; win.style.left = `${nX}px`; } if (nH !== win.offsetHeight || nY !== win.offsetTop) { win.style.height = `${nH}px`; win.style.top = `${nY}px`; } }, end: () => { document.removeEventListener('mousemove', resizer._resizeHandlers.move); document.removeEventListener('mouseup', resizer._resizeHandlers.end); document.body.style.userSelect = ''; document.body.style.cursor = ''; } }; resizer.addEventListener('mousedown', resizer._resizeHandlers.start); }); }
 
-                el.remove();
-                delete openWindows[winId];
-                if (activeWindow === el) { activateWindow(null); }
-            }
-        }
-        // Drag Functionality (Unchanged)
-        function addDragFunctionality(win, hdr, winId) { let isDragging = false, oX, oY; hdr._dragHandlers = { start: (e) => { if (e.target.tagName === 'BUTTON') return; isDragging = true; activateWindow(win); oX = e.clientX - win.getBoundingClientRect().left; oY = e.clientY - win.getBoundingClientRect().top; hdr.style.cursor = 'grabbing'; document.body.style.userSelect = 'none'; document.addEventListener('mousemove', hdr._dragHandlers.move); document.addEventListener('mouseup', hdr._dragHandlers.end); }, move: (e) => { if (!isDragging) return; e.preventDefault(); let nX = e.clientX - oX, nY = e.clientY - oY; const dR = desktop.getBoundingClientRect(), wR = win.getBoundingClientRect(); nX = Math.max(0, Math.min(nX, dR.width - wR.width)); nY = Math.max(0, Math.min(nY, dR.height - wR.height)); win.style.left = `${nX}px`; win.style.top = `${nY}px`; }, end: () => { if (isDragging) { isDragging = false; hdr.style.cursor = 'grab'; document.body.style.userSelect = ''; document.removeEventListener('mousemove', hdr._dragHandlers.move); document.removeEventListener('mouseup', hdr._dragHandlers.end); } } }; hdr.addEventListener('mousedown', hdr._dragHandlers.start); }
-
-        // --- Window Creation Base ---
-        function createWindowBase(config) {
-            const winKey = config.type === 'internal' ? config.action : config.url;
-            const existingId = Object.keys(openWindows).find(id => openWindows[id].key === winKey);
-            if (existingId) { activateWindow(document.getElementById(existingId)); return; }
-            windowIdCounter++; const winId = `window-${windowIdCounter}`; const win = document.createElement('div');
-            win.className = `app-window ${config.className || ''}`; win.id = winId;
-            win.style.top = config.top || `${Math.random() * 20 + 5}%`; win.style.left = config.left || `${Math.random() * 30 + 10}%`;
-            win.style.width = config.width || '600px'; win.style.height = config.height || '450px'; // Default size adjusted for maps potentially
-            // Don't set resize:none if internal type is settings
-            // if (config.type !== 'internal' || config.action !== 'changeBackground') {
-            //     // Allow custom resizing for most windows
-            // } else {
-            //     win.style.resize = 'none'; // No resize for specific internal windows like settings
-            //     win.classList.add('settings-window');
-            // }
-
-            // Add Header and Content
+        // --- Window Creation Base (Unchanged) ---
+        function createWindowBase(config) { /* ... same as previous version ... */
+            const winKey = config.type === 'internal' ? config.action : config.url; const existingId = Object.keys(openWindows).find(id => openWindows[id].key === winKey); if (existingId) { activateWindow(document.getElementById(existingId)); return; } windowIdCounter++; const winId = `window-${windowIdCounter}`; const win = document.createElement('div'); win.className = `app-window ${config.className || ''}`; win.id = winId; win.style.top = config.top || `${Math.random() * 20 + 5}%`; win.style.left = config.left || `${Math.random() * 30 + 10}%`; win.style.width = config.width || '700px'; /* Wider default for browser */ win.style.height = config.height || '500px'; /* Taller default for browser */
+            // Header and Content
             win.innerHTML = `<div class="window-header"><span class="window-icon">${config.icon || '📄'}</span><span class="window-title">${config.name}</span><div class="window-controls"><button class="close-btn" title="Close">✖</button></div></div><div class="window-content ${config.contentClass || ''}">${config.contentHTML}</div>`;
-
-            // ** ADD RESIZE HANDLES ** (Only if not settings window)
-            if (config.action !== 'changeBackground') {
-                const handles = ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'top', 'bottom', 'left', 'right'];
-                handles.forEach(handleType => {
-                    const resizer = document.createElement('div');
-                    resizer.classList.add('resizer', handleType);
-                    win.appendChild(resizer);
-                    // Attach resize listener later
-                });
-            }
-
-
-            desktop.appendChild(win);
-            openWindows[winId] = { element: win, key: winKey };
-            activateWindow(win);
-
-            const header = win.querySelector('.window-header');
-            const closeBtn = win.querySelector('.close-btn');
-            closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeWindow(winId); });
-            win.addEventListener('mousedown', (e) => {
-                // Activate on click, but not if clicking a resizer or button
-                if (e.target === win || header.contains(e.target)) {
-                    if (!e.target.classList.contains('resizer') && e.target.tagName !== 'BUTTON') {
-                         activateWindow(win);
-                    }
-                }
-             }, true);
-
-            // Add Drag functionality
-            addDragFunctionality(win, header, winId);
-            // ** Add Resize functionality ** (Only if not settings window)
-             if (config.action !== 'changeBackground') {
-                 addResizeFunctionality(win);
-             }
-
-            return win;
-        }
-
-
-        // --- ** NEW Resize Functionality ** ---
-        function addResizeFunctionality(win) {
-            const resizers = win.querySelectorAll('.resizer');
-            const minWidth = parseInt(getComputedStyle(win).minWidth); // Get min width from CSS
-            const minHeight = parseInt(getComputedStyle(win).minHeight); // Get min height from CSS
-            let originalWidth, originalHeight, originalX, originalY, originalMouseX, originalMouseY, currentResizerType;
-
-            resizers.forEach(resizer => {
-                resizer._resizeHandlers = { // Store handlers on the element
-                    start: (e) => {
-                        currentResizerType = resizer.classList[1]; // e.g., 'bottom-right'
-                        e.preventDefault(); // Prevent default drag behavior
-                        originalWidth = win.offsetWidth;
-                        originalHeight = win.offsetHeight;
-                        originalX = win.offsetLeft;
-                        originalY = win.offsetTop;
-                        originalMouseX = e.clientX;
-                        originalMouseY = e.clientY;
-
-                        activateWindow(win); // Ensure window is active when resizing
-
-                        document.addEventListener('mousemove', resizer._resizeHandlers.move);
-                        document.addEventListener('mouseup', resizer._resizeHandlers.end);
-                        document.body.style.userSelect = 'none'; // Prevent text selection
-                        document.body.style.cursor = getComputedStyle(resizer).cursor; // Set body cursor
-                    },
-                    move: (e) => {
-                        const dx = e.clientX - originalMouseX;
-                        const dy = e.clientY - originalMouseY;
-
-                        // Calculate new dimensions and position based on handle type
-                        let newWidth = originalWidth;
-                        let newHeight = originalHeight;
-                        let newX = originalX;
-                        let newY = originalY;
-
-                        if (currentResizerType.includes('right')) {
-                            newWidth = originalWidth + dx;
-                        }
-                        if (currentResizerType.includes('bottom')) {
-                            newHeight = originalHeight + dy;
-                        }
-                        if (currentResizerType.includes('left')) {
-                            newWidth = originalWidth - dx;
-                            newX = originalX + dx; // Move left edge
-                        }
-                        if (currentResizerType.includes('top')) {
-                            newHeight = originalHeight - dy;
-                            newY = originalY + dy; // Move top edge
-                        }
-
-                        // Apply minimum size constraints
-                        if (newWidth < minWidth) {
-                            if (currentResizerType.includes('left')) {
-                                newX -= (minWidth - newWidth); // Adjust position if shrinking from left
-                            }
-                            newWidth = minWidth;
-                        }
-                        if (newHeight < minHeight) {
-                             if (currentResizerType.includes('top')) {
-                                newY -= (minHeight - newHeight); // Adjust position if shrinking from top
-                            }
-                            newHeight = minHeight;
-                        }
-
-                        // Apply new styles if changed
-                        if (newWidth !== win.offsetWidth || newX !== win.offsetLeft) {
-                           win.style.width = `${newWidth}px`;
-                           win.style.left = `${newX}px`;
-                        }
-                        if (newHeight !== win.offsetHeight || newY !== win.offsetTop) {
-                            win.style.height = `${newHeight}px`;
-                            win.style.top = `${newY}px`;
-                        }
-                    },
-                    end: () => {
-                        document.removeEventListener('mousemove', resizer._resizeHandlers.move);
-                        document.removeEventListener('mouseup', resizer._resizeHandlers.end);
-                        document.body.style.userSelect = ''; // Restore selection
-                        document.body.style.cursor = ''; // Restore cursor
-                    }
-                };
-                resizer.addEventListener('mousedown', resizer._resizeHandlers.start);
-            });
+            // Add Resizers (unless settings)
+            if (config.action !== 'changeBackground') { const handles = ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'top', 'bottom', 'left', 'right']; handles.forEach(ht => { const r = document.createElement('div'); r.classList.add('resizer', ht); win.appendChild(r); }); }
+            desktop.appendChild(win); openWindows[winId] = { element: win, key: winKey }; activateWindow(win);
+            const header = win.querySelector('.window-header'); const closeBtn = win.querySelector('.close-btn'); closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeWindow(winId); }); win.addEventListener('mousedown', (e) => { if (e.target === win || header.contains(e.target)) { if (!e.target.classList.contains('resizer') && e.target.tagName !== 'BUTTON') { activateWindow(win); } } }, true);
+            // Add Drag & Resize
+            addDragFunctionality(win, header, winId); if (config.action !== 'changeBackground') { addResizeFunctionality(win); } return win;
         }
 
 
         // --- Specific Window Creators ---
 
+        // Simple iframe window (no loading/error logic)
         function createIframeWindow(name, url, icon) {
-            // Simplified: No loading/error divs or JS handling needed anymore
-            const contentHTML = `
-                <iframe src="${url}"
-                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-modals allow-popups-to-escape-sandbox"
-                        loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade" /* Often needed for embeds */
-                        allowfullscreen /* Needed for Maps embed features */
-                        title="${name} App Window">
-                    <!-- Browser native fallback/error -->
-                </iframe>`;
-             // Add specific sandboxing/allowfullscreen for maps if needed
+            const contentHTML = `<iframe src="${url}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-modals allow-popups-to-escape-sandbox" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen title="${name} App Window"></iframe>`;
             createWindowBase({ name, url, icon, contentHTML });
         }
 
-        // Background Settings Window (Unchanged - note: no resizers added)
-        function createBackgroundSettingsWindow() {
-             const config = { name: "Appearance Settings", icon: "🖼️", action: 'changeBackground', type: 'internal', width: '380px', height: '220px', /* resizable: false implicitly handled by not adding handles */ contentClass: 'background-uploader settings-content', contentHTML: `<p>Select an image file to set as the desktop background:</p><label for="background-input" class="upload-label">Choose Image</label><input type="file" id="background-input" accept="image/*" /><p class="feedback" id="bg-feedback"></p>` };
-             const appWindow = createWindowBase(config);
-             if (appWindow) {
-                 const fileInput = appWindow.querySelector('#background-input'); const feedbackP = appWindow.querySelector('#bg-feedback'); const windowId = appWindow.id;
-                 fileInput.addEventListener('change', (event) => { const file = event.target.files[0]; feedbackP.textContent = ''; feedbackP.style.color = ''; if (file && file.type.startsWith('image/')) { feedbackP.textContent = 'Reading image...'; const reader = new FileReader(); reader.onload = (e) => { desktop.style.backgroundImage = `url('${e.target.result}')`; desktop.style.backgroundSize = 'cover'; desktop.style.backgroundPosition = 'center center'; feedbackP.textContent = 'Background updated!'; feedbackP.style.color = 'green'; setTimeout(() => closeWindow(windowId), 1200); }; reader.onerror = () => { feedbackP.textContent = 'Error reading file.'; feedbackP.style.color = 'red'; }; reader.readAsDataURL(file); } else if (file) { feedbackP.textContent = 'Please select a valid image file.'; feedbackP.style.color = 'orange'; } });
-             }
+        // ** NEW: Simulated Browser Window Creator **
+        function createBrowserWindow() {
+            const name = "Web Browser";
+            const icon = "🌐";
+            const initialUrl = "https://duckduckgo.com/"; // Start page
+
+            // Toolbar + Iframe structure
+            const contentHTML = `
+                <div class="browser-toolbar">
+                    <input type="text" class="browser-address-bar" value="${initialUrl}" placeholder="Enter URL and press Enter or click Go">
+                    <button class="browser-go-btn">Go</button>
+                </div>
+                <iframe src="${initialUrl}"
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-modals allow-popups-to-escape-sandbox"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="${name} Content Area">
+                </iframe>`;
+
+             const config = {
+                name,
+                icon,
+                action: 'openBrowser', // Unique key for this internal app
+                type: 'internal',
+                contentHTML,
+                // Use default width/height from createWindowBase or set specific ones
+             };
+            const appWindow = createWindowBase(config);
+
+            // Add functionality to the toolbar elements *after* the window is created
+            if (appWindow) {
+                const addressBar = appWindow.querySelector('.browser-address-bar');
+                const goButton = appWindow.querySelector('.browser-go-btn');
+                const iframe = appWindow.querySelector('iframe');
+
+                const navigate = () => {
+                    let url = addressBar.value.trim();
+                    // Basic URL correction (add https:// if missing common scheme)
+                    if (url && !url.match(/^(\w+:)?\/\//)) { // Doesn't start with scheme:// or //
+                        url = 'https://' + url;
+                        addressBar.value = url; // Update input field
+                    }
+                    if (url) {
+                        iframe.src = url;
+                    }
+                };
+
+                goButton.addEventListener('click', navigate);
+                addressBar.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        navigate();
+                    }
+                });
+            }
         }
 
-        // --- Global App Launch Listener (Unchanged) ---
-        document.addEventListener('click', (event) => { const launcher = event.target.closest('.app-launcher'); if (launcher) { const name = launcher.dataset.appName, url = launcher.dataset.appUrl, icon = launcher.dataset.appIcon || launcher.textContent.trim(); const appType = launcher.dataset.appType, appAction = launcher.dataset.appAction; if (appType === 'internal') { if (appAction === 'changeBackground') { createBackgroundSettingsWindow(); } } else if (name && url) { createIframeWindow(name, url, icon); } if (webNest.classList.contains('visible')) { toggleNest(); } } });
 
-        console.log("CockatooOS Concept Initialized (v. Resizable Windows)!");
+        // Background Settings Window (Unchanged)
+        function createBackgroundSettingsWindow() { /* ... same as before ... */ const config={name:"Appearance Settings",icon:"🖼️",action:'changeBackground',type:'internal',width:'380px',height:'220px',contentClass:'background-uploader settings-content',contentHTML:`<p>Select an image file to set as the desktop background:</p><label for="background-input" class="upload-label">Choose Image</label><input type="file" id="background-input" accept="image/*" /><p class="feedback" id="bg-feedback"></p>`};const appWindow=createWindowBase(config);if(appWindow){const fileInput=appWindow.querySelector('#background-input');const feedbackP=appWindow.querySelector('#bg-feedback');const windowId=appWindow.id;fileInput.addEventListener('change',(event)=>{const file=event.target.files[0];feedbackP.textContent='';feedbackP.style.color='';if(file&&file.type.startsWith('image/')){feedbackP.textContent='Reading image...';const reader=new FileReader();reader.onload=(e)=>{desktop.style.backgroundImage=`url('${e.target.result}')`;desktop.style.backgroundSize='cover';desktop.style.backgroundPosition='center center';feedbackP.textContent='Background updated!';feedbackP.style.color='green';setTimeout(()=>closeWindow(windowId),1200);};reader.onerror=()=>{feedbackP.textContent='Error reading file.';feedbackP.style.color='red';};reader.readAsDataURL(file);}else if(file){feedbackP.textContent='Please select a valid image file.';feedbackP.style.color='orange';}});}}
+
+        // --- Global App Launch Listener ---
+        document.addEventListener('click', (event) => {
+            const launcher = event.target.closest('.app-launcher');
+            if (launcher) {
+                const name = launcher.dataset.appName;
+                const url = launcher.dataset.appUrl;
+                const icon = launcher.dataset.appIcon || launcher.textContent.trim();
+                const appType = launcher.dataset.appType;
+                const appAction = launcher.dataset.appAction;
+
+                if (appType === 'internal') {
+                    // Handle internal apps
+                    if (appAction === 'changeBackground') {
+                        createBackgroundSettingsWindow();
+                    } else if (appAction === 'openBrowser') { // ** Call new browser function **
+                        createBrowserWindow();
+                    }
+                } else if (name && url) {
+                    // Simple iframe for external apps
+                    createIframeWindow(name, url, icon);
+                }
+
+                if (webNest.classList.contains('visible')) {
+                    toggleNest();
+                }
+            }
+        });
+
+        console.log("CockatooOS Concept Initialized (v. Simulated Browser)!");
 
     </script>
 
