@@ -253,6 +253,15 @@
             background-color: #fff; /* Background while loading */
         }
 
+        /* Style for iframe loading message */
+        .iframe-info {
+             padding: 20px;
+             text-align: center;
+             color: #666;
+             font-size: 0.9em;
+        }
+
+
     </style>
 </head>
 <body>
@@ -264,10 +273,11 @@
     <!-- The Branch (Dock) -->
     <div id="branch">
         <div class="branch-item" id="nest-toggle" data-tooltip="App Launcher">🚀</div>
-        <!-- Add more fixed apps here -->
+        <!-- Fixed apps -->
         <div class="branch-item app-launcher" data-app-name="Web Search" data-app-url="https://duckduckgo.com/" data-app-icon="🌐" data-tooltip="Web Search">🌐</div>
         <div class="branch-item app-launcher" data-app-name="Notepad" data-app-url="https://anotepad.com/" data-app-icon="📝" data-tooltip="Notepad">📝</div>
-        <div class="branch-item app-launcher" data-app-name="Game: 2048" data-app-url="https://play2048.co/" data-app-icon="🎮" data-tooltip="Play 2048">🎮</div>
+        <div class="branch-item app-launcher" data-app-name="Code Editor" data-app-url="https://vscode.dev/" data-app-icon="💻" data-tooltip="Code Editor">💻</div>
+        <div class="branch-item app-launcher" data-app-name="Draw" data-app-url="https://excalidraw.com/" data-app-icon="🎨" data-tooltip="Draw">🎨</div>
 
         <div id="system-tray">
             <span id="clock"></span>
@@ -293,16 +303,24 @@
 
         // --- App Definitions ---
         // Define apps here to populate the Web Nest
+        // !! IMPORTANT !! Many sites block loading in iframes (X-Frame-Options/CSP).
+        // Choose sites known to allow embedding or be prepared for them not to load.
         const apps = [
             { name: "Web Search", url: "https://duckduckgo.com/", icon: "🌐" },
             { name: "Notepad", url: "https://anotepad.com/", icon: "📝" },
             { name: "Calculator", url: "https://webcalculator.io/", icon: "🧮" },
-            { name: "Game: 2048", url: "https://play2048.co/", icon: "🎮" },
             { name: "Code Editor", url: "https://vscode.dev/", icon: "💻" },
-            { name: "Maps", url: "https://www.google.com/maps", icon: "🗺️" },
-            { name: "Converter", url:"https://cloudconvert.com/", icon: "🔄" },
-            { name: "Draw", url:"https://excalidraw.com/", icon: "🎨" }
-            // Add more apps as needed
+            { name: "Draw", url:"https://excalidraw.com/", icon: "🎨" },
+            { name: "Game: 2048", url: "https://play2048.co/", icon: "🎮" },
+            { name: "Game: Tetris", url: "https://tetris.com/play-tetris", icon: "🧱" }, // Might block
+            { name: "Converter", url:"https://cloudconvert.com/", icon: "🔄" }, // Often works
+            { name: "Wikipedia", url: "https://www.wikipedia.org/", icon: "📖"}, // Usually works
+            { name: "Weather", url: "https://www.metaweather.com/", icon: "🌦️" }, // Simple, might work
+            { name: "Music Sequencer", url: "https://musiclab.chromeexperiments.com/Song-Maker/", icon: "🎵" }, // Usually works
+            { name: "Password Gen", url: "https://passwordsgenerator.net/", icon: "🔑" }, // Simple tool
+            { name: "Internet Speed Test", url: "https://www.speedtest.net/", icon: "⚡"}, // Likely blocks
+            { name: "Photo Editor", url: "https://pixlr.com/e/", icon: "🖼️" }, // Might block features
+            // { name: "Maps", url: "https://www.google.com/maps", icon: "🗺️" }, // Almost certainly blocks
         ];
 
         // --- Clock Functionality ---
@@ -311,34 +329,40 @@
             const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             clockElement.textContent = timeString;
         }
-        setInterval(updateClock, 1000); // Update every second
-        updateClock(); // Initial call
+        setInterval(updateClock, 1000);
+        updateClock();
 
         // --- Web Nest (App Launcher) Functionality ---
         function toggleNest() {
             if (webNest.classList.contains('visible')) {
-                webNest.classList.remove('visible');
-                webNest.style.pointerEvents = 'none'; // Prevent interaction while hiding
+                webNest.style.opacity = 0; // Start fade out
+                webNest.style.transform = 'translate(-50%, -50%) scale(0.95)';
+                webNest.style.pointerEvents = 'none';
+                webNest.classList.remove('visible'); // remove class immediately for logic checks
                  setTimeout(() => { // Ensure display:none happens after fade
-                   if (!webNest.classList.contains('visible')) webNest.style.display = 'none';
+                    // Check again in case it was reopened quickly
+                    if (!webNest.classList.contains('visible')) {
+                        webNest.style.display = 'none';
+                    }
                  }, 300); // Match transition duration
             } else {
-                webNest.style.display = 'grid'; // Set display before animating
-                // Needs a tiny delay for the display change to register before transition
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
+                webNest.style.display = 'grid';
+                 // Needs a tiny delay for the display change to register before transition
+                 requestAnimationFrame(() => {
+                     requestAnimationFrame(() => { // Double RAF for robustness
                          webNest.classList.add('visible');
+                         webNest.style.opacity = 1;
+                         webNest.style.transform = 'translate(-50%, -50%) scale(1)';
                          webNest.style.pointerEvents = 'auto';
-                    });
-                });
+                     });
+                 });
             }
         }
 
         nestToggle.addEventListener('click', toggleNest);
 
-        // Close nest if clicking outside of it
         document.addEventListener('click', (event) => {
-             if (webNest.classList.contains('visible') && !webNest.contains(event.target) && event.target !== nestToggle) {
+             if (webNest.classList.contains('visible') && !webNest.contains(event.target) && !nestToggle.contains(event.target) ) {
                 toggleNest();
              }
         });
@@ -352,7 +376,7 @@
                 appElement.className = 'app-icon app-launcher';
                 appElement.dataset.appName = app.name;
                 appElement.dataset.appUrl = app.url;
-                appElement.dataset.appIcon = app.icon; // Store icon for window header
+                appElement.dataset.appIcon = app.icon;
 
                 appElement.innerHTML = `
                     <div class="icon">${app.icon}</div>
@@ -373,15 +397,15 @@
             const appWindow = document.createElement('div');
             appWindow.className = 'app-window';
             appWindow.id = windowId;
-            // Random initial position (avoiding exact center)
-            const top = Math.random() * 30 + 10; // 10% to 40% from top
-            const left = Math.random() * 40 + 10; // 10% to 50% from left
+            const top = Math.random() * 20 + 5; // 5% to 25% from top
+            const left = Math.random() * 30 + 10; // 10% to 40% from left
             appWindow.style.top = `${top}%`;
             appWindow.style.left = `${left}%`;
-            appWindow.style.width = '600px'; // Default size
-            appWindow.style.height = '400px';
+            appWindow.style.width = '650px'; // Slightly larger default
+            appWindow.style.height = '450px';
 
-
+            // Add iframe with sandbox attributes for security
+            // Note: sandbox won't override X-Frame-Options or CSP frame-ancestors
             appWindow.innerHTML = `
                 <div class="window-header">
                     <span class="window-icon" style="margin-right: 5px;">${icon || '📄'}</span>
@@ -391,62 +415,82 @@
                     </div>
                 </div>
                 <div class="window-content">
-                    <iframe src="${url}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation" loading="lazy"></iframe>
+                    <iframe src="${url}"
+                            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-modals"
+                            loading="lazy"
+                            referrerpolicy="no-referrer"
+                            title="${name} App Window">
+                        <!-- Fallback message if iframe fails -->
+                         <p class="iframe-info">Loading ${name}... If it doesn't appear, the website might block embedding.</p>
+                    </iframe>
                 </div>
             `;
 
             desktop.appendChild(appWindow);
-            activateWindow(appWindow); // Make the new window active
+            activateWindow(appWindow);
 
-            // --- Add Event Listeners for the new window ---
+            // --- Add Event Listeners ---
             const header = appWindow.querySelector('.window-header');
             const closeButton = appWindow.querySelector('.close-btn');
+            const iframe = appWindow.querySelector('iframe');
 
-            // Close Button
-            closeButton.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent click from bubbling to header/window
-                appWindow.remove();
-                 if (activeWindow === appWindow) {
-                    activeWindow = null;
-                    // Optional: activate the next highest window if desired
-                 }
+            // Try to detect loading failure (basic)
+            iframe.addEventListener('load', () => {
+                try {
+                    // Accessing contentWindow.location throws a cross-origin error if blocked
+                    // This is an indirect way to guess if framing was denied
+                     const _ = iframe.contentWindow.location.href;
+                     // If we got here, it probably loaded okay (or it's about:blank)
+                } catch (e) {
+                     // Likely blocked by X-Frame-Options or CSP
+                     console.warn(`CockatooOS: Could not load ${url} in iframe. Probably blocked.`);
+                     const contentDiv = appWindow.querySelector('.window-content');
+                     contentDiv.innerHTML = `<p class="iframe-info">The website <strong>${name}</strong> (${url}) could not be loaded here.<br>This usually happens because the site blocks being embedded for security reasons.</p>`;
+                }
+            });
+            // Handle cases where 'load' doesn't fire properly on error (less common)
+            iframe.addEventListener('error', () => {
+                 console.warn(`CockatooOS: Iframe error event for ${url}.`);
+                 const contentDiv = appWindow.querySelector('.window-content');
+                 contentDiv.innerHTML = `<p class="iframe-info">Failed to load <strong>${name}</strong> (${url}).<br>The website might be down or block embedding.</p>`;
             });
 
-            // Activate window on click
-             appWindow.addEventListener('mousedown', () => {
-                 activateWindow(appWindow);
-             }, true); // Use capture phase to ensure it runs before drag starts
 
+            closeButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                appWindow.remove();
+                 if (activeWindow === appWindow) activeWindow = null;
+            });
+
+            appWindow.addEventListener('mousedown', () => activateWindow(appWindow), true);
 
             // Drag Functionality
             let isDragging = false;
             let offsetX, offsetY;
 
             header.addEventListener('mousedown', (e) => {
-                // Prevent drag start if clicking on button
                 if (e.target.tagName === 'BUTTON') return;
-
                 isDragging = true;
-                activateWindow(appWindow); // Bring to front when starting drag
-                // Calculate offset from the top-left corner of the window
-                offsetX = e.clientX - appWindow.offsetLeft;
-                offsetY = e.clientY - appWindow.offsetTop;
-                header.style.cursor = 'grabbing'; // Change cursor
-                // Prevent text selection during drag
+                activateWindow(appWindow);
+                offsetX = e.clientX - appWindow.getBoundingClientRect().left;
+                offsetY = e.clientY - appWindow.getBoundingClientRect().top;
+                header.style.cursor = 'grabbing';
                 document.body.style.userSelect = 'none';
             });
 
             document.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
+                e.preventDefault(); // Prevent text selection etc. during drag
 
-                // Calculate new position
                 let newX = e.clientX - offsetX;
                 let newY = e.clientY - offsetY;
 
-                // Basic boundary collision (prevent dragging completely off-screen)
                 const desktopRect = desktop.getBoundingClientRect();
-                newX = Math.max(0, Math.min(newX, desktopRect.width - appWindow.offsetWidth));
-                newY = Math.max(0, Math.min(newY, desktopRect.height - appWindow.offsetHeight));
+                const winRect = appWindow.getBoundingClientRect();
+
+                // Clamp position within desktop bounds
+                newX = Math.max(0, Math.min(newX, desktopRect.width - winRect.width));
+                newY = Math.max(0, Math.min(newY, desktopRect.height - winRect.height));
 
 
                 appWindow.style.left = `${newX}px`;
@@ -456,8 +500,8 @@
             document.addEventListener('mouseup', () => {
                 if (isDragging) {
                     isDragging = false;
-                    header.style.cursor = 'grab'; // Restore cursor
-                    document.body.style.userSelect = ''; // Restore text selection
+                    header.style.cursor = 'grab';
+                    document.body.style.userSelect = '';
                 }
             });
         }
@@ -479,11 +523,10 @@
             if (launcher) {
                 const name = launcher.dataset.appName;
                 const url = launcher.dataset.appUrl;
-                const icon = launcher.dataset.appIcon || launcher.textContent.trim(); // Get icon from data or text content
+                const icon = launcher.dataset.appIcon || launcher.textContent.trim();
 
                 if (name && url) {
                     createWindow(name, url, icon);
-                    // Optionally close the Nest after launching an app
                     if (webNest.classList.contains('visible')) {
                         toggleNest();
                     }
@@ -491,7 +534,7 @@
             }
         });
 
-        console.log("CockatooOS Concept Initialized!");
+        console.log("CockatooOS Concept Initialized! Remember: Many websites block iframe embedding.");
 
     </script>
 </body>
