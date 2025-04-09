@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CockatooOS - Concept (Reliable Apps)</title>
+    <title>CockatooOS - Concept (Background Upload)</title>
     <style>
         /* --- Global Styles & Variables --- */
         :root {
@@ -28,15 +28,7 @@
         html, body {
             height: 100%;
             width: 100%;
-            overflow: hidden; /* Prevent scrolling of the main page */
-            background-color: var(--bg-color);
-            /* Optional: Add a subtle background pattern or image */
-            background-image: linear-gradient(45deg, #e7f3ff 25%, transparent 25%),
-                              linear-gradient(-45deg, #e7f3ff 25%, transparent 25%),
-                              linear-gradient(45deg, transparent 75%, #e7f3ff 75%),
-                              linear-gradient(-45deg, transparent 75%, #e7f3ff 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            overflow: hidden;
             color: var(--text-color);
         }
 
@@ -45,6 +37,16 @@
             position: relative;
             width: 100%;
             height: 100%;
+            background-color: var(--bg-color);
+            /* Default background pattern */
+            background-image: linear-gradient(45deg, #e7f3ff 25%, transparent 25%),
+                              linear-gradient(-45deg, #e7f3ff 25%, transparent 25%),
+                              linear-gradient(45deg, transparent 75%, #e7f3ff 75%),
+                              linear-gradient(-45deg, transparent 75%, #e7f3ff 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            /* Transition for background change */
+            transition: background-image 0.5s ease-in-out;
         }
 
         /* --- The Branch (Dock/Taskbar) --- */
@@ -54,28 +56,28 @@
             left: 50%;
             transform: translateX(-50%);
             background-color: var(--branch-bg);
-            backdrop-filter: blur(5px); /* Frosty glass effect */
+            backdrop-filter: blur(5px);
             border-radius: 15px;
             padding: 8px 15px;
             display: flex;
             align-items: center;
             gap: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            z-index: 1000; /* Above windows */
+            z-index: 1000;
         }
 
         .branch-item {
             width: var(--icon-size);
             height: var(--icon-size);
-            background-color: #eee; /* Placeholder bg */
+            background-color: #eee;
             border-radius: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px; /* Emoji size */
+            font-size: 24px;
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            position: relative; /* For tooltips */
+            position: relative;
         }
 
         .branch-item:hover {
@@ -86,7 +88,7 @@
         .branch-item[data-tooltip]::after {
             content: attr(data-tooltip);
             position: absolute;
-            bottom: 110%; /* Position above the icon */
+            bottom: 110%;
             left: 50%;
             transform: translateX(-50%);
             background-color: rgba(0, 0, 0, 0.7);
@@ -98,7 +100,7 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.2s ease;
-            pointer-events: none; /* Don't interfere with clicks */
+            pointer-events: none;
         }
 
         .branch-item[data-tooltip]:hover::after {
@@ -121,27 +123,27 @@
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(0.95); /* Start slightly smaller */
+            transform: translate(-50%, -50%) scale(0.95);
             width: 80%;
-            max-width: 500px; /* Slightly smaller max-width */
-            max-height: 60vh; /* Reduced height */
+            max-width: 500px;
+            max-height: 60vh;
             overflow-y: auto;
             background-color: var(--nest-bg);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: none; /* Hidden by default */
-            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); /* Adjusted grid */
-            gap: 20px; /* Reduced gap */
-            z-index: 900; /* Below the branch */
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 20px;
+            z-index: 900;
             opacity: 0;
             transition: opacity 0.3s ease, transform 0.3s ease;
-            pointer-events: none; /* Prevent interaction while hidden */
+            pointer-events: none;
         }
 
         #web-nest.visible {
-           /* Properties set in JS on toggle for smoother transition */
+           /* Properties set in JS */
         }
 
         #web-nest .app-icon {
@@ -160,19 +162,19 @@
         }
 
         #web-nest .app-icon .icon {
-            width: 50px; /* Slightly smaller icon */
+            width: 50px;
             height: 50px;
-            background-color: #ddd; /* Placeholder */
+            background-color: #ddd;
             border-radius: 12px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 28px; /* Emoji size */
+            font-size: 28px;
             margin-bottom: 8px;
         }
 
         #web-nest .app-icon .name {
-            font-size: 12px; /* Slightly smaller text */
+            font-size: 12px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -185,34 +187,38 @@
             background-color: var(--window-bg);
             border-radius: 10px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.25);
-            overflow: hidden; /* Contain the iframe */
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             min-width: 300px;
             min-height: 200px;
-            resize: both; /* Basic resizing - browser dependent */
-            z-index: 1; /* Default stacking */
+            resize: both;
+            z-index: 1;
+        }
+
+        .app-window.settings-window { /* Specific style for settings */
+             resize: none;
+             min-height: auto; /* Allow smaller height */
         }
 
         .app-window.active {
-             z-index: 10; /* Bring active window to front */
+             z-index: 10;
         }
 
         .window-header {
             background-color: var(--window-header-bg);
             padding: 5px 10px;
-            cursor: grab; /* Indicate draggable */
+            cursor: grab;
             display: flex;
             justify-content: space-between;
             align-items: center;
             height: 30px;
             border-bottom: 1px solid #ccc;
-            user-select: none; /* Prevent text selection while dragging */
+            user-select: none;
         }
          .window-header:active {
             cursor: grabbing;
          }
-
 
         .window-title {
             font-weight: bold;
@@ -220,17 +226,17 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            padding: 0 5px; /* Add padding */
+            padding: 0 5px;
         }
 
         .window-icon {
-             display: inline-block; /* Needed for margin */
+             display: inline-block;
              margin-right: 5px;
-             flex-shrink: 0; /* Prevent icon shrinking */
+             flex-shrink: 0;
         }
 
         .window-controls {
-            flex-shrink: 0; /* Prevent controls shrinking */
+            flex-shrink: 0;
         }
 
         .window-controls button {
@@ -252,27 +258,56 @@
         }
 
         .window-content {
-            flex-grow: 1; /* Fill remaining space */
-            border: none; /* Remove iframe border */
-            display: flex; /* Use flex to center fallback message */
+            flex-grow: 1;
+            border: none;
+            display: flex;
             justify-content: center;
             align-items: center;
+            overflow: auto; /* Add scroll for content if needed */
         }
 
         .window-content iframe {
             width: 100%;
             height: 100%;
             border: none;
-            background-color: #fff; /* Background while loading */
+            background-color: #fff;
         }
 
-        /* Style for iframe loading message */
-        .iframe-info {
+        .iframe-info, .settings-content { /* Style for info/settings */
              padding: 20px;
              text-align: center;
              color: #666;
              font-size: 0.9em;
-             max-width: 80%;
+             max-width: 90%;
+             width: 100%; /* Take full width of content area */
+             align-self: flex-start; /* Align content to top */
+        }
+         .settings-content p {
+             margin-bottom: 15px;
+         }
+
+        /* --- Background Uploader Specific Styles --- */
+        .background-uploader input[type="file"] {
+            display: none; /* Hide default file input */
+        }
+        .background-uploader .upload-label {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: var(--accent-color);
+            color: var(--text-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, opacity 0.2s ease;
+            font-weight: 500;
+        }
+        .background-uploader .upload-label:hover {
+            opacity: 0.85;
+        }
+        .background-uploader .feedback {
+             font-size: 0.85em;
+             margin-top: 12px;
+             min-height: 1.2em; /* Reserve space */
         }
 
     </style>
@@ -280,17 +315,18 @@
 <body>
 
     <div id="desktop">
-        <!-- App windows will be dynamically added here -->
+        <!-- App windows added here -->
     </div>
 
-    <!-- The Branch (Dock) - Updated with more reliable apps -->
+    <!-- The Branch (Dock) -->
     <div id="branch">
         <div class="branch-item" id="nest-toggle" data-tooltip="App Launcher">🚀</div>
-        <!-- Fixed apps known to work reliably -->
         <div class="branch-item app-launcher" data-app-name="Notepad" data-app-url="https://anotepad.com/" data-app-icon="📝" data-tooltip="Notepad">📝</div>
         <div class="branch-item app-launcher" data-app-name="Wikipedia" data-app-url="https://www.wikipedia.org/" data-app-icon="📖" data-tooltip="Wikipedia">📖</div>
         <div class="branch-item app-launcher" data-app-name="Draw" data-app-url="https://excalidraw.com/" data-app-icon="🎨" data-tooltip="Draw">🎨</div>
         <div class="branch-item app-launcher" data-app-name="Game: 2048" data-app-url="https://play2048.co/" data-app-icon="🎮" data-tooltip="Play 2048">🎮</div>
+        <!-- Added Appearance to Branch for easy access -->
+        <div class="branch-item app-launcher" data-app-name="Appearance" data-app-type="internal" data-app-action="changeBackground" data-app-icon="🖼️" data-tooltip="Appearance">🖼️</div>
 
         <div id="system-tray">
             <span id="clock"></span>
@@ -299,7 +335,7 @@
 
     <!-- Web Nest (App Launcher Panel) -->
     <div id="web-nest">
-        <!-- Apps defined in JS will be added here -->
+        <!-- Populated by JS -->
     </div>
 
     <script>
@@ -312,51 +348,48 @@
         const clockElement = document.getElementById('clock');
 
         let activeWindow = null;
-        let highestZIndex = 10; // Start z-index for windows
+        let highestZIndex = 10;
+        let windowIdCounter = 0;
+        let openWindows = {}; // Keep track of open windows to prevent duplicates/manage state
 
         // --- App Definitions ---
-        // !! Using ONLY apps known to be generally reliable in iframes !!
-        // Websites can change their policies, but this list should be much more stable.
         const apps = [
+            // Reliable External Apps
             { name: "Notepad", url: "https://anotepad.com/", icon: "📝" },
             { name: "Wikipedia", url: "https://www.wikipedia.org/", icon: "📖"},
             { name: "Draw", url:"https://excalidraw.com/", icon: "🎨" },
             { name: "Game: 2048", url: "https://play2048.co/", icon: "🎮" },
-            { name: "Web Search (DDG)", url: "https://duckduckgo.com/", icon: "🌐" }, // Main page usually works
+            { name: "Web Search (DDG)", url: "https://duckduckgo.com/", icon: "🌐" },
             { name: "Calculator", url: "https://webcalculator.io/", icon: "🧮" },
-            { name: "Code Editor (VSCode)", url: "https://vscode.dev/", icon: "💻" }, // Generally reliable PWA
+            { name: "Code Editor (VSCode)", url: "https://vscode.dev/", icon: "💻" },
             { name: "Music Sequencer", url: "https://musiclab.chromeexperiments.com/Song-Maker/", icon: "🎵" },
             { name: "Password Gen", url: "https://passwordsgenerator.net/", icon: "🔑" },
-             // Add more simple tools or embeddable games if found
+            // Internal Apps
+            { name: "Appearance", type: 'internal', action: 'changeBackground', icon: "🖼️" },
         ];
 
-        // --- Clock Functionality ---
+        // --- Clock ---
         function updateClock() {
             const now = new Date();
-            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            clockElement.textContent = timeString;
+            clockElement.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
         setInterval(updateClock, 1000);
         updateClock();
 
-        // --- Web Nest (App Launcher) Functionality ---
+        // --- Web Nest Toggle ---
         function toggleNest() {
             if (webNest.classList.contains('visible')) {
-                webNest.style.opacity = 0; // Start fade out
+                webNest.style.opacity = 0;
                 webNest.style.transform = 'translate(-50%, -50%) scale(0.95)';
                 webNest.style.pointerEvents = 'none';
-                webNest.classList.remove('visible'); // remove class immediately for logic checks
-                 setTimeout(() => { // Ensure display:none happens after fade
-                    // Check again in case it was reopened quickly
-                    if (!webNest.classList.contains('visible')) {
-                        webNest.style.display = 'none';
-                    }
-                 }, 300); // Match transition duration
+                webNest.classList.remove('visible');
+                 setTimeout(() => {
+                    if (!webNest.classList.contains('visible')) webNest.style.display = 'none';
+                 }, 300);
             } else {
                 webNest.style.display = 'grid';
-                 // Needs a tiny delay for the display change to register before transition
                  requestAnimationFrame(() => {
-                     requestAnimationFrame(() => { // Double RAF for robustness
+                     requestAnimationFrame(() => {
                          webNest.classList.add('visible');
                          webNest.style.opacity = 1;
                          webNest.style.transform = 'translate(-50%, -50%) scale(1)';
@@ -365,194 +398,322 @@
                  });
             }
         }
-
         nestToggle.addEventListener('click', toggleNest);
-
         document.addEventListener('click', (event) => {
-             // Close nest only if clicking outside of it AND outside the toggle button
              if (webNest.classList.contains('visible') && !webNest.contains(event.target) && !nestToggle.contains(event.target) ) {
                 toggleNest();
              }
         });
 
-
-        // Populate Web Nest
+        // --- Populate Web Nest ---
         function populateNest() {
-            webNest.innerHTML = ''; // Clear existing icons
+            webNest.innerHTML = '';
             apps.forEach(app => {
                 const appElement = document.createElement('div');
                 appElement.className = 'app-icon app-launcher';
                 appElement.dataset.appName = app.name;
-                appElement.dataset.appUrl = app.url;
                 appElement.dataset.appIcon = app.icon;
-
-                appElement.innerHTML = `
-                    <div class="icon">${app.icon}</div>
-                    <div class="name">${app.name}</div>
-                `;
+                if (app.type === 'internal') {
+                    appElement.dataset.appType = app.type;
+                    appElement.dataset.appAction = app.action;
+                } else {
+                    appElement.dataset.appUrl = app.url;
+                }
+                appElement.innerHTML = `<div class="icon">${app.icon}</div><div class="name">${app.name}</div>`;
                 webNest.appendChild(appElement);
             });
         }
         populateNest();
 
-        // --- Window Creation and Management ---
-        let windowIdCounter = 0;
-
-        function createWindow(name, url, icon) {
-            windowIdCounter++;
-            const windowId = `window-${windowIdCounter}`;
-
-            const appWindow = document.createElement('div');
-            appWindow.className = 'app-window';
-            appWindow.id = windowId;
-            const top = Math.random() * 20 + 5; // 5% to 25% from top
-            const left = Math.random() * 30 + 10; // 10% to 40% from left
-            appWindow.style.top = `${top}%`;
-            appWindow.style.left = `${left}%`;
-            appWindow.style.width = '600px';
-            appWindow.style.height = '400px';
-
-            // Add iframe with sandbox attributes for security
-            appWindow.innerHTML = `
-                <div class="window-header">
-                    <span class="window-icon">${icon || '📄'}</span>
-                    <span class="window-title">${name}</span>
-                    <div class="window-controls">
-                        <button class="close-btn" title="Close">✖</button>
-                    </div>
-                </div>
-                <div class="window-content">
-                    <iframe src="${url}"
-                            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-modals"
-                            loading="lazy"
-                            referrerpolicy="no-referrer"
-                            title="${name} App Window">
-                         <!-- Initial fallback message -->
-                         <p class="iframe-info">Loading ${name}...</p>
-                    </iframe>
-                </div>
-            `;
-
-            desktop.appendChild(appWindow);
-            activateWindow(appWindow);
-
-            // --- Add Event Listeners ---
-            const header = appWindow.querySelector('.window-header');
-            const closeButton = appWindow.querySelector('.close-btn');
-            const iframe = appWindow.querySelector('iframe');
-            const contentDiv = appWindow.querySelector('.window-content');
-
-            // Try to detect loading failure (basic) - Still useful even for reliable sites
-            let loadedSuccessfully = false;
-            iframe.addEventListener('load', () => {
-                try {
-                     // Very basic check - accessing this might throw if it's truly blocked or about:blank
-                     const _ = iframe.contentWindow.location.href;
-                     // If it loaded 'about:blank' or similar error page, it didn't really load the site
-                     if (iframe.contentWindow.location.href === 'about:blank' && url !== 'about:blank') {
-                         throw new Error("Loaded about:blank instead of target URL.");
-                     }
-                     console.log(`CockatooOS: Successfully loaded (or seems to have loaded) ${url}`);
-                     loadedSuccessfully = true;
-                     // Remove fallback message if it's still there
-                     const fallback = contentDiv.querySelector('.iframe-info');
-                     if (fallback) fallback.remove();
-                } catch (e) {
-                     if (!loadedSuccessfully) { // Avoid showing error if it eventually loaded fine
-                         console.warn(`CockatooOS: Could not load ${url} in iframe. Blocked? Error: ${e.message}`);
-                         contentDiv.innerHTML = `<p class="iframe-info">Could not load <strong>${name}</strong>.<br>The website might block embedding or be temporarily unavailable.</p>`;
-                     }
-                }
-            });
-
-            iframe.addEventListener('error', (e) => {
-                 if (!loadedSuccessfully) {
-                     console.warn(`CockatooOS: Iframe error event for ${url}.`);
-                     contentDiv.innerHTML = `<p class="iframe-info">Failed to load <strong>${name}</strong>.<br>Check your internet connection or the website might block embedding.</p>`;
-                 }
-            });
-
-
-            closeButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                appWindow.remove();
-                 if (activeWindow === appWindow) activeWindow = null;
-            });
-
-            appWindow.addEventListener('mousedown', () => activateWindow(appWindow), true);
-
-            // Drag Functionality
-            let isDragging = false;
-            let offsetX, offsetY;
-
-            header.addEventListener('mousedown', (e) => {
-                if (e.target.tagName === 'BUTTON') return;
-                isDragging = true;
-                activateWindow(appWindow);
-                offsetX = e.clientX - appWindow.getBoundingClientRect().left;
-                offsetY = e.clientY - appWindow.getBoundingClientRect().top;
-                header.style.cursor = 'grabbing';
-                document.body.style.userSelect = 'none';
-            });
-
-            document.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                e.preventDefault();
-
-                let newX = e.clientX - offsetX;
-                let newY = e.clientY - offsetY;
-
-                const desktopRect = desktop.getBoundingClientRect();
-                const winRect = appWindow.getBoundingClientRect();
-
-                newX = Math.max(0, Math.min(newX, desktopRect.width - winRect.width));
-                newY = Math.max(0, Math.min(newY, desktopRect.height - winRect.height));
-
-
-                appWindow.style.left = `${newX}px`;
-                appWindow.style.top = `${newY}px`;
-            });
-
-            document.addEventListener('mouseup', () => {
-                if (isDragging) {
-                    isDragging = false;
-                    header.style.cursor = 'grab';
-                    document.body.style.userSelect = '';
-                }
-            });
-        }
+        // --- Window Management ---
 
         function activateWindow(windowElement) {
              if (activeWindow && activeWindow !== windowElement) {
                   activeWindow.classList.remove('active');
              }
-             activeWindow = windowElement;
-             activeWindow.classList.add('active');
-             highestZIndex++;
-             activeWindow.style.zIndex = highestZIndex;
+             if (windowElement) { // Ensure windowElement exists
+                 activeWindow = windowElement;
+                 activeWindow.classList.add('active');
+                 highestZIndex++;
+                 activeWindow.style.zIndex = highestZIndex;
+             } else {
+                 activeWindow = null; // No window to activate
+             }
+         }
+
+        function closeWindow(windowId) {
+             const windowElement = document.getElementById(windowId);
+             if (windowElement) {
+                 // Clean up drag listeners specifically associated with this window
+                 const header = windowElement.querySelector('.window-header');
+                 if (header && header._dragHandlers) {
+                     document.removeEventListener('mousemove', header._dragHandlers.move);
+                     document.removeEventListener('mouseup', header._dragHandlers.end);
+                     console.log(`Removed drag listeners for ${windowId}`);
+                 } else {
+                     console.warn(`Could not find drag handlers to remove for ${windowId}`);
+                 }
+
+                 windowElement.remove();
+                 delete openWindows[windowId]; // Remove from tracking
+                 if (activeWindow === windowElement) {
+                     activateWindow(null); // Deactivate if closing active window
+                 }
+                 console.log(`Closed window: ${windowId}`);
+             } else {
+                 console.warn(`Attempted to close non-existent window: ${windowId}`);
+             }
          }
 
 
-        // --- Event Listener for Launching Apps ---
+        // --- Window Creation (Refactored) ---
+
+        function createWindowBase(config) {
+            // Prevent duplicate windows based on a unique key (e.g., internal action or URL)
+            const windowKey = config.type === 'internal' ? config.action : config.url;
+            const existingWindowId = Object.keys(openWindows).find(id => openWindows[id].key === windowKey);
+
+            if (existingWindowId) {
+                activateWindow(document.getElementById(existingWindowId));
+                console.log(`Window for key "${windowKey}" already open. Activating: ${existingWindowId}`);
+                return; // Don't create a new one
+            }
+
+            windowIdCounter++;
+            const windowId = `window-${windowIdCounter}`;
+            const appWindow = document.createElement('div');
+            appWindow.className = `app-window ${config.className || ''}`;
+            appWindow.id = windowId;
+            appWindow.style.top = config.top || `${Math.random() * 20 + 5}%`;
+            appWindow.style.left = config.left || `${Math.random() * 30 + 10}%`;
+            appWindow.style.width = config.width || '600px';
+            appWindow.style.height = config.height || '400px';
+            if (config.resizable === false) {
+                 appWindow.style.resize = 'none';
+                 appWindow.classList.add('settings-window'); // Use specific class if not resizable
+            }
+
+            appWindow.innerHTML = `
+                <div class="window-header">
+                    <span class="window-icon">${config.icon || '📄'}</span>
+                    <span class="window-title">${config.name}</span>
+                    <div class="window-controls">
+                        <button class="close-btn" title="Close">✖</button>
+                    </div>
+                </div>
+                <div class="window-content ${config.contentClass || ''}">
+                    ${config.contentHTML}
+                </div>
+            `;
+
+            desktop.appendChild(appWindow);
+            openWindows[windowId] = { element: appWindow, key: windowKey }; // Track open window
+            activateWindow(appWindow);
+
+            // --- Add Event Listeners ---
+            const header = appWindow.querySelector('.window-header');
+            const closeButton = appWindow.querySelector('.close-btn');
+
+            closeButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeWindow(windowId);
+            });
+
+            appWindow.addEventListener('mousedown', (e) => {
+                 // Only activate if the mousedown is directly on the window or header,
+                 // not on interactive elements within the content.
+                 if (e.target === appWindow || header.contains(e.target)) {
+                     activateWindow(appWindow);
+                 }
+            }, true); // Use capture phase
+
+            // Drag Functionality (Attach handlers to header)
+             addDragFunctionality(appWindow, header, windowId);
+
+            return appWindow; // Return the created window element
+        }
+
+         function addDragFunctionality(appWindow, header, windowId) {
+             let isDragging = false;
+             let offsetX, offsetY;
+
+             // Store handlers on the header element itself for easier removal later
+             header._dragHandlers = {
+                 start: (e) => {
+                     if (e.target.tagName === 'BUTTON') return; // Don't drag on controls
+                     if (!appWindow.classList.contains('active')) return; // Only drag active window
+
+                     isDragging = true;
+                     offsetX = e.clientX - appWindow.getBoundingClientRect().left;
+                     offsetY = e.clientY - appWindow.getBoundingClientRect().top;
+                     header.style.cursor = 'grabbing';
+                     document.body.style.userSelect = 'none';
+
+                     // Add move/end listeners only when drag starts
+                     document.addEventListener('mousemove', header._dragHandlers.move);
+                     document.addEventListener('mouseup', header._dragHandlers.end);
+                 },
+                 move: (e) => {
+                     if (!isDragging) return;
+                     e.preventDefault(); // Prevent text selection etc.
+
+                     let newX = e.clientX - offsetX;
+                     let newY = e.clientY - offsetY;
+
+                     const desktopRect = desktop.getBoundingClientRect();
+                     const winRect = appWindow.getBoundingClientRect();
+
+                     // Clamp position
+                     newX = Math.max(0, Math.min(newX, desktopRect.width - winRect.width));
+                     newY = Math.max(0, Math.min(newY, desktopRect.height - winRect.height));
+
+                     appWindow.style.left = `${newX}px`;
+                     appWindow.style.top = `${newY}px`;
+                 },
+                 end: () => {
+                     if (isDragging) {
+                         isDragging = false;
+                         header.style.cursor = 'grab';
+                         document.body.style.userSelect = '';
+                         // Remove move/end listeners when drag ends
+                         document.removeEventListener('mousemove', header._dragHandlers.move);
+                         document.removeEventListener('mouseup', header._dragHandlers.end);
+                     }
+                 }
+             };
+
+             header.addEventListener('mousedown', header._dragHandlers.start);
+             console.log(`Added drag listeners for ${windowId}`);
+         }
+
+
+        // --- Specific Window Creators ---
+
+        function createIframeWindow(name, url, icon) {
+            const contentHTML = `
+                <iframe src="${url}"
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-modals"
+                        loading="lazy"
+                        referrerpolicy="no-referrer"
+                        title="${name} App Window">
+                     <p class="iframe-info">Loading ${name}...</p>
+                </iframe>`;
+
+            const appWindow = createWindowBase({ name, url, icon, contentHTML });
+
+            // Add iframe load/error handling
+            if (appWindow) { // Ensure window was created (not duplicate)
+                 const iframe = appWindow.querySelector('iframe');
+                 const contentDiv = appWindow.querySelector('.window-content');
+                 let loadedSuccessfully = false;
+
+                 iframe.addEventListener('load', () => {
+                    try {
+                        const _ = iframe.contentWindow.location.href;
+                        if (iframe.contentWindow.location.href === 'about:blank' && url !== 'about:blank') {
+                             throw new Error("Blocked: Loaded about:blank");
+                        }
+                        loadedSuccessfully = true;
+                        const fallback = contentDiv.querySelector('.iframe-info');
+                        if (fallback) fallback.remove();
+                    } catch (e) {
+                         if (!loadedSuccessfully) {
+                             console.warn(`Iframe load error for ${url}: ${e.message}`);
+                             contentDiv.innerHTML = `<p class="iframe-info"><strong>${name}</strong> could not be loaded.<br>(Site might block embedding).</p>`;
+                         }
+                    }
+                 });
+                 iframe.addEventListener('error', () => {
+                     if (!loadedSuccessfully) {
+                         console.warn(`Iframe error event for ${url}`);
+                         contentDiv.innerHTML = `<p class="iframe-info">Failed to load <strong>${name}</strong>.<br>(Connection issue or embedding blocked).</p>`;
+                     }
+                 });
+            }
+        }
+
+        function createBackgroundSettingsWindow() {
+            const config = {
+                name: "Appearance Settings",
+                icon: "🖼️",
+                action: 'changeBackground', // Use action as the key
+                type: 'internal',
+                width: '380px',
+                height: '220px',
+                resizable: false,
+                contentClass: 'background-uploader settings-content',
+                contentHTML: `
+                    <p>Select an image file to set as the desktop background:</p>
+                    <label for="background-input" class="upload-label">Choose Image</label>
+                    <input type="file" id="background-input" accept="image/*" />
+                    <p class="feedback" id="bg-feedback"></p>
+                `
+            };
+
+            const appWindow = createWindowBase(config);
+
+            if (appWindow) { // Ensure window was created
+                const fileInput = appWindow.querySelector('#background-input');
+                const feedbackP = appWindow.querySelector('#bg-feedback');
+                const windowId = appWindow.id;
+
+                fileInput.addEventListener('change', (event) => {
+                    const file = event.target.files[0];
+                    feedbackP.textContent = ''; // Clear previous feedback
+                    feedbackP.style.color = ''; // Reset color
+
+                    if (file && file.type.startsWith('image/')) {
+                        feedbackP.textContent = 'Reading image...';
+                        const reader = new FileReader();
+
+                        reader.onload = (e) => {
+                            desktop.style.backgroundImage = `url('${e.target.result}')`;
+                            desktop.style.backgroundSize = 'cover';
+                            desktop.style.backgroundPosition = 'center center';
+                            feedbackP.textContent = 'Background updated!';
+                            feedbackP.style.color = 'green';
+                            // Close window after success
+                            setTimeout(() => closeWindow(windowId), 1200);
+                        };
+                        reader.onerror = () => {
+                             feedbackP.textContent = 'Error reading file.';
+                             feedbackP.style.color = 'red';
+                        };
+                        reader.readAsDataURL(file);
+                    } else if (file) {
+                         feedbackP.textContent = 'Please select a valid image file.';
+                         feedbackP.style.color = 'orange';
+                    }
+                });
+            }
+        }
+
+        // --- Global App Launch Listener ---
         document.addEventListener('click', (event) => {
             const launcher = event.target.closest('.app-launcher');
             if (launcher) {
                 const name = launcher.dataset.appName;
                 const url = launcher.dataset.appUrl;
                 const icon = launcher.dataset.appIcon || launcher.textContent.trim();
+                const appType = launcher.dataset.appType;
+                const appAction = launcher.dataset.appAction;
 
-                if (name && url) {
-                    createWindow(name, url, icon);
-                    // Close the Nest after launching an app for cleaner UX
-                    if (webNest.classList.contains('visible')) {
-                        toggleNest();
-                    }
+                if (appType === 'internal') {
+                    if (appAction === 'changeBackground') {
+                        createBackgroundSettingsWindow();
+                    } // Add more internal actions here if needed
+                } else if (name && url) {
+                    createIframeWindow(name, url, icon);
+                }
+
+                // Close nest after launching
+                if (webNest.classList.contains('visible')) {
+                    toggleNest();
                 }
             }
         });
 
-        console.log("CockatooOS Concept Initialized (Reliable Apps Version)!");
-        console.log("Remember: Websites control if they can be embedded. This list should work better.");
+        console.log("CockatooOS Concept Initialized (v. Background Upload)!");
 
     </script>
 </body>
