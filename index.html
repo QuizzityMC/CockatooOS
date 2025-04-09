@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CockatooOS - Concept</title>
+    <style>
+        /* --- Global Styles & Variables --- */
+        :root {
+            --bg-color: #f0f8ff; /* AliceBlue - Light & Airy */
+            --branch-bg: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
+            --nest-bg: rgba(245, 245, 245, 0.95); /* Slightly opaque light grey */
+            --accent-color: #ffc107; /* Cockatoo Yellow */
+            --text-color: #333;
+            --icon-size: 48px;
+            --window-bg: #ffffff;
+            --window-header-bg: #e0e0e0;
+            --close-btn-color: #ff6b6b; /* Reddish */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* Prevent scrolling of the main page */
+            background-color: var(--bg-color);
+            /* Optional: Add a subtle background pattern or image */
+            background-image: linear-gradient(45deg, #e7f3ff 25%, transparent 25%),
+                              linear-gradient(-45deg, #e7f3ff 25%, transparent 25%),
+                              linear-gradient(45deg, transparent 75%, #e7f3ff 75%),
+                              linear-gradient(-45deg, transparent 75%, #e7f3ff 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            color: var(--text-color);
+        }
+
+        /* --- Desktop Area --- */
+        #desktop {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* --- The Branch (Dock/Taskbar) --- */
+        #branch {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--branch-bg);
+            backdrop-filter: blur(5px); /* Frosty glass effect */
+            border-radius: 15px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            z-index: 1000; /* Above windows */
+        }
+
+        .branch-item {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            background-color: #eee; /* Placeholder bg */
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px; /* Emoji size */
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative; /* For tooltips */
+        }
+
+        .branch-item:hover {
+            transform: scale(1.15);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .branch-item[data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 110%; /* Position above the icon */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease;
+            pointer-events: none; /* Don't interfere with clicks */
+        }
+
+        .branch-item[data-tooltip]:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+
+        #system-tray {
+            margin-left: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 5px 10px;
+            background-color: rgba(0,0,0,0.05);
+            border-radius: 8px;
+        }
+
+        /* --- Web Nest (App Launcher) --- */
+        #web-nest {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 600px;
+            max-height: 70vh;
+            overflow-y: auto;
+            background-color: var(--nest-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none; /* Hidden by default */
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 25px;
+            z-index: 900; /* Below the branch */
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        #web-nest.visible {
+            display: grid;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        #web-nest .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 10px;
+            transition: background-color 0.2s ease;
+        }
+
+        #web-nest .app-icon:hover {
+            background-color: rgba(0,0,0,0.08);
+        }
+
+        #web-nest .app-icon .icon {
+            width: 60px;
+            height: 60px;
+            background-color: #ddd; /* Placeholder */
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px; /* Emoji size */
+            margin-bottom: 8px;
+        }
+
+        #web-nest .app-icon .name {
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        /* --- App Windows --- */
+        .app-window {
+            position: absolute;
+            background-color: var(--window-bg);
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+            overflow: hidden; /* Contain the iframe */
+            display: flex;
+            flex-direction: column;
+            min-width: 300px;
+            min-height: 200px;
+            resize: both; /* Basic resizing - browser dependent */
+            z-index: 1; /* Default stacking */
+        }
+
+        .app-window.active {
+             z-index: 10; /* Bring active window to front */
+        }
+
+        .window-header {
+            background-color: var(--window-header-bg);
+            padding: 5px 10px;
+            cursor: grab; /* Indicate draggable */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 30px;
+            border-bottom: 1px solid #ccc;
+            user-select: none; /* Prevent text selection while dragging */
+        }
+         .window-header:active {
+            cursor: grabbing;
+         }
+
+
+        .window-title {
+            font-weight: bold;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .window-controls button {
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0 5px;
+            line-height: 1;
+            color: var(--text-color);
+        }
+
+        .window-controls .close-btn {
+            color: var(--close-btn-color);
+        }
+        .window-controls .close-btn:hover {
+            opacity: 0.7;
+        }
+
+        .window-content {
+            flex-grow: 1; /* Fill remaining space */
+            border: none; /* Remove iframe border */
+        }
+
+        .window-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #fff; /* Background while loading */
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="desktop">
+        <!-- App windows will be dynamically added here -->
+    </div>
+
+    <!-- The Branch (Dock) -->
+    <div id="branch">
+        <div class="branch-item" id="nest-toggle" data-tooltip="App Launcher">🚀</div>
+        <!-- Add more fixed apps here -->
+        <div class="branch-item app-launcher" data-app-name="Web Search" data-app-url="https://duckduckgo.com/" data-app-icon="🌐" data-tooltip="Web Search">🌐</div>
+        <div class="branch-item app-launcher" data-app-name="Notepad" data-app-url="https://anotepad.com/" data-app-icon="📝" data-tooltip="Notepad">📝</div>
+        <div class="branch-item app-launcher" data-app-name="Game: 2048" data-app-url="https://play2048.co/" data-app-icon="🎮" data-tooltip="Play 2048">🎮</div>
+
+        <div id="system-tray">
+            <span id="clock"></span>
+        </div>
+    </div>
+
+    <!-- Web Nest (App Launcher Panel) -->
+    <div id="web-nest">
+        <!-- Apps defined in JS will be added here -->
+    </div>
+
+    <script>
+        // --- CockatooOS Concept Script ---
+
+        const desktop = document.getElementById('desktop');
+        const branch = document.getElementById('branch');
+        const nestToggle = document.getElementById('nest-toggle');
+        const webNest = document.getElementById('web-nest');
+        const clockElement = document.getElementById('clock');
+
+        let activeWindow = null;
+        let highestZIndex = 10; // Start z-index for windows
+
+        // --- App Definitions ---
+        // Define apps here to populate the Web Nest
+        const apps = [
+            { name: "Web Search", url: "https://duckduckgo.com/", icon: "🌐" },
+            { name: "Notepad", url: "https://anotepad.com/", icon: "📝" },
+            { name: "Calculator", url: "https://webcalculator.io/", icon: "🧮" },
+            { name: "Game: 2048", url: "https://play2048.co/", icon: "🎮" },
+            { name: "Code Editor", url: "https://vscode.dev/", icon: "💻" },
+            { name: "Maps", url: "https://www.google.com/maps", icon: "🗺️" },
+            { name: "Converter", url:"https://cloudconvert.com/", icon: "🔄" },
+            { name: "Draw", url:"https://excalidraw.com/", icon: "🎨" }
+            // Add more apps as needed
+        ];
+
+        // --- Clock Functionality ---
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            clockElement.textContent = timeString;
+        }
+        setInterval(updateClock, 1000); // Update every second
+        updateClock(); // Initial call
+
+        // --- Web Nest (App Launcher) Functionality ---
+        function toggleNest() {
+            if (webNest.classList.contains('visible')) {
+                webNest.classList.remove('visible');
+                webNest.style.pointerEvents = 'none'; // Prevent interaction while hiding
+                 setTimeout(() => { // Ensure display:none happens after fade
+                   if (!webNest.classList.contains('visible')) webNest.style.display = 'none';
+                 }, 300); // Match transition duration
+            } else {
+                webNest.style.display = 'grid'; // Set display before animating
+                // Needs a tiny delay for the display change to register before transition
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                         webNest.classList.add('visible');
+                         webNest.style.pointerEvents = 'auto';
+                    });
+                });
+            }
+        }
+
+        nestToggle.addEventListener('click', toggleNest);
+
+        // Close nest if clicking outside of it
+        document.addEventListener('click', (event) => {
+             if (webNest.classList.contains('visible') && !webNest.contains(event.target) && event.target !== nestToggle) {
+                toggleNest();
+             }
+        });
+
+
+        // Populate Web Nest
+        function populateNest() {
+            webNest.innerHTML = ''; // Clear existing icons
+            apps.forEach(app => {
+                const appElement = document.createElement('div');
+                appElement.className = 'app-icon app-launcher';
+                appElement.dataset.appName = app.name;
+                appElement.dataset.appUrl = app.url;
+                appElement.dataset.appIcon = app.icon; // Store icon for window header
+
+                appElement.innerHTML = `
+                    <div class="icon">${app.icon}</div>
+                    <div class="name">${app.name}</div>
+                `;
+                webNest.appendChild(appElement);
+            });
+        }
+        populateNest();
+
+        // --- Window Creation and Management ---
+        let windowIdCounter = 0;
+
+        function createWindow(name, url, icon) {
+            windowIdCounter++;
+            const windowId = `window-${windowIdCounter}`;
+
+            const appWindow = document.createElement('div');
+            appWindow.className = 'app-window';
+            appWindow.id = windowId;
+            // Random initial position (avoiding exact center)
+            const top = Math.random() * 30 + 10; // 10% to 40% from top
+            const left = Math.random() * 40 + 10; // 10% to 50% from left
+            appWindow.style.top = `${top}%`;
+            appWindow.style.left = `${left}%`;
+            appWindow.style.width = '600px'; // Default size
+            appWindow.style.height = '400px';
+
+
+            appWindow.innerHTML = `
+                <div class="window-header">
+                    <span class="window-icon" style="margin-right: 5px;">${icon || '📄'}</span>
+                    <span class="window-title">${name}</span>
+                    <div class="window-controls">
+                        <button class="close-btn" title="Close">✖</button>
+                    </div>
+                </div>
+                <div class="window-content">
+                    <iframe src="${url}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation" loading="lazy"></iframe>
+                </div>
+            `;
+
+            desktop.appendChild(appWindow);
+            activateWindow(appWindow); // Make the new window active
+
+            // --- Add Event Listeners for the new window ---
+            const header = appWindow.querySelector('.window-header');
+            const closeButton = appWindow.querySelector('.close-btn');
+
+            // Close Button
+            closeButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent click from bubbling to header/window
+                appWindow.remove();
+                 if (activeWindow === appWindow) {
+                    activeWindow = null;
+                    // Optional: activate the next highest window if desired
+                 }
+            });
+
+            // Activate window on click
+             appWindow.addEventListener('mousedown', () => {
+                 activateWindow(appWindow);
+             }, true); // Use capture phase to ensure it runs before drag starts
+
+
+            // Drag Functionality
+            let isDragging = false;
+            let offsetX, offsetY;
+
+            header.addEventListener('mousedown', (e) => {
+                // Prevent drag start if clicking on button
+                if (e.target.tagName === 'BUTTON') return;
+
+                isDragging = true;
+                activateWindow(appWindow); // Bring to front when starting drag
+                // Calculate offset from the top-left corner of the window
+                offsetX = e.clientX - appWindow.offsetLeft;
+                offsetY = e.clientY - appWindow.offsetTop;
+                header.style.cursor = 'grabbing'; // Change cursor
+                // Prevent text selection during drag
+                document.body.style.userSelect = 'none';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+
+                // Calculate new position
+                let newX = e.clientX - offsetX;
+                let newY = e.clientY - offsetY;
+
+                // Basic boundary collision (prevent dragging completely off-screen)
+                const desktopRect = desktop.getBoundingClientRect();
+                newX = Math.max(0, Math.min(newX, desktopRect.width - appWindow.offsetWidth));
+                newY = Math.max(0, Math.min(newY, desktopRect.height - appWindow.offsetHeight));
+
+
+                appWindow.style.left = `${newX}px`;
+                appWindow.style.top = `${newY}px`;
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    header.style.cursor = 'grab'; // Restore cursor
+                    document.body.style.userSelect = ''; // Restore text selection
+                }
+            });
+        }
+
+        function activateWindow(windowElement) {
+             if (activeWindow && activeWindow !== windowElement) {
+                  activeWindow.classList.remove('active');
+             }
+             activeWindow = windowElement;
+             activeWindow.classList.add('active');
+             highestZIndex++;
+             activeWindow.style.zIndex = highestZIndex;
+         }
+
+
+        // --- Event Listener for Launching Apps ---
+        document.addEventListener('click', (event) => {
+            const launcher = event.target.closest('.app-launcher');
+            if (launcher) {
+                const name = launcher.dataset.appName;
+                const url = launcher.dataset.appUrl;
+                const icon = launcher.dataset.appIcon || launcher.textContent.trim(); // Get icon from data or text content
+
+                if (name && url) {
+                    createWindow(name, url, icon);
+                    // Optionally close the Nest after launching an app
+                    if (webNest.classList.contains('visible')) {
+                        toggleNest();
+                    }
+                }
+            }
+        });
+
+        console.log("CockatooOS Concept Initialized!");
+
+    </script>
+</body>
+</html>
