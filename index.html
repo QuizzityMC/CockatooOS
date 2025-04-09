@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CockatooOS - Concept (Strict State)</title>
+    <title>CockatooOS - Concept (No Fallbacks)</title>
     <style>
-        /* --- CSS is identical to the previous version --- */
         /* --- Global Styles & Variables --- */
         :root {
-            --bg-color: #f0f8ff; /* AliceBlue - Light & Airy */
+            --bg-color: #f0f8ff; /* AliceBlue */
             --branch-bg: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
             --nest-bg: rgba(245, 245, 245, 0.95); /* Slightly opaque light grey */
             --accent-color: #ffc107; /* Cockatoo Yellow */
@@ -75,10 +74,33 @@
         .window-controls .close-btn:hover { opacity: 0.7; }
 
         /* --- Window Content Area --- */
-        .window-content { flex-grow: 1; border: none; display: flex; position: relative; background-color: #f8f9fa; }
-        .window-content iframe { flex-grow: 1; width: 100%; height: 100%; border: none; background-color: #fff; display: none; /* Initially hidden */ }
-        .iframe-info, .settings-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; background-color: #f8f9fa; color: #666; font-size: 0.9em; display: flex; /* Initially visible */ }
-        .settings-content { position: static; background-color: transparent; align-items: flex-start; justify-content: flex-start; height: auto; flex-grow: 0; }
+        .window-content {
+            flex-grow: 1;
+            border: none;
+            display: flex; /* Ensure iframe child takes space */
+            background-color: #fff; /* Can be white or light grey */
+        }
+        /* Iframe takes full space and is always visible */
+        .window-content iframe {
+            flex-grow: 1; /* Use flex-grow to fill container */
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #fff; /* White bg for loading/errors */
+            display: block !important; /* Ensure it's displayed */
+        }
+        /* .iframe-info REMOVED */
+
+        /* Settings content styling */
+        .settings-content {
+             padding: 20px;
+             text-align: center;
+             color: #666;
+             font-size: 0.9em;
+             max-width: 90%;
+             width: 100%;
+             align-self: flex-start;
+        }
         .settings-content p { margin-bottom: 15px; }
 
         /* --- Background Uploader Specific Styles --- */
@@ -121,8 +143,8 @@
         let openWindows = {};
 
         // --- App Definitions (Unchanged) ---
-        const apps = [
-            { name: "Notepad", url: "https://anotepad.com/", icon: "📝" }, { name: "Wikipedia", url: "https://www.wikipedia.org/", icon: "📖"},
+        const apps = [ /* ... same apps ... */
+             { name: "Notepad", url: "https://anotepad.com/", icon: "📝" }, { name: "Wikipedia", url: "https://www.wikipedia.org/", icon: "📖"},
             { name: "Draw", url:"https://excalidraw.com/", icon: "🎨" }, { name: "Game: 2048", url: "https://play2048.co/", icon: "🎮" },
             { name: "Web Search (DDG)", url: "https://duckduckgo.com/", icon: "🌐" }, { name: "Calculator", url: "https://webcalculator.io/", icon: "🧮" },
             { name: "Code Editor (VSCode)", url: "https://vscode.dev/", icon: "💻" }, { name: "Music Sequencer", url: "https://musiclab.chromeexperiments.com/Song-Maker/", icon: "🎵" },
@@ -149,56 +171,21 @@
         // --- Specific Window Creators ---
 
         function createIframeWindow(name, url, icon) {
-            // HTML Structure: iframe and info div as siblings
+            // **REMOVED:** Fallback div (.iframe-info)
+            // **REMOVED:** Initial display:none on iframe
+            // **REMOVED:** All load/error event listeners for iframe
             const contentHTML = `
-                <div class="iframe-info"> <!-- Initially visible via CSS flex -->
-                   <p>Loading ${name}...</p>
-                </div>
                 <iframe src="${url}"
-                        style="display: none;" /* Initially hidden */
+                        /* style="display: block;" - Not needed, block is default */
                         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-modals"
-                        loading="lazy"
+                        loading="lazy" /* Keep lazy loading */
                         referrerpolicy="no-referrer"
                         title="${name} App Window">
+                    <!-- Browser native fallback/error message will show here if needed -->
                 </iframe>`;
 
-            const appWindow = createWindowBase({ name, url, icon, contentHTML });
-
-            // **REVISED Event Handling with Strict State:**
-            if (appWindow) {
-                 const iframe = appWindow.querySelector('iframe');
-                 const fallbackMessageDiv = appWindow.querySelector('.iframe-info');
-                 let loadingState = 'loading'; // Possible states: 'loading', 'loaded', 'error'
-
-                 iframe.addEventListener('load', () => {
-                    console.log(`Load event for: ${url}. Current state: ${loadingState}`);
-                    // --- Transition to 'loaded' only if still 'loading' ---
-                    if (loadingState === 'loading') {
-                        loadingState = 'loaded'; // Set state to loaded
-                        fallbackMessageDiv.style.display = 'none'; // Hide "Loading..."
-                        iframe.style.display = 'block';        // Show iframe
-                        console.log(`State => 'loaded'. Showing iframe for ${url}`);
-                    } else {
-                        // Ignore subsequent load events if already loaded or errored
-                        console.log(`Ignoring load event for ${url}. State is already '${loadingState}'.`);
-                    }
-                 });
-
-                 iframe.addEventListener('error', (e) => {
-                     console.warn(`Error event for: ${url}. Current state: ${loadingState}`, e);
-                    // --- Transition to 'error' only if still 'loading' ---
-                    if (loadingState === 'loading') {
-                        loadingState = 'error'; // Set state to error
-                        fallbackMessageDiv.innerHTML = `<p>Failed to load <strong>${name}</strong>.<br>(Connection issue or site error).</p>`;
-                        fallbackMessageDiv.style.display = 'flex'; // Ensure message is visible
-                        iframe.style.display = 'none';       // Ensure iframe remains hidden
-                        console.log(`State => 'error'. Showing error message for ${url}`);
-                    } else {
-                        // Ignore error events if already loaded or errored
-                        console.log(`Ignoring error event for ${url}. State is already '${loadingState}'.`);
-                    }
-                 });
-            }
+            // Call base creator, no further JS needed for the iframe content itself
+            createWindowBase({ name, url, icon, contentHTML });
         }
 
         // Background Settings Window (Unchanged)
@@ -207,7 +194,8 @@
         // --- Global App Launch Listener (Unchanged) ---
         document.addEventListener('click', (event) => { const launcher = event.target.closest('.app-launcher'); if (launcher) { const name = launcher.dataset.appName, url = launcher.dataset.appUrl, icon = launcher.dataset.appIcon || launcher.textContent.trim(); const appType = launcher.dataset.appType, appAction = launcher.dataset.appAction; if (appType === 'internal') { if (appAction === 'changeBackground') { createBackgroundSettingsWindow(); } } else if (name && url) { createIframeWindow(name, url, icon); } if (webNest.classList.contains('visible')) { toggleNest(); } } });
 
-        console.log("CockatooOS Concept Initialized (v. Strict State)!");
+        console.log("CockatooOS Concept Initialized (v. No Fallbacks)!");
+
     </script>
 
 </body>
